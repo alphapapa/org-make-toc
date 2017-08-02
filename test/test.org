@@ -1,0 +1,20 @@
+
+
+* Tests
+
+** Pcase
+
+#+BEGIN_SRC elisp
+  (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
+    (let ((tree (cddr (org-element-parse-buffer 'headline))))
+      (org-walk-tree-pcase tree)))
+#+END_SRC
+
+#+RESULTS:
+| headline | Contents        | nil                                   |
+| headline | A               | ((headline A2 nil) (headline A3 nil)) |
+| headline | B               | ((headline B2 nil) (headline B3 nil)) |
+| headline | Ignore-Children |                                       |
+| headline | C               | ((headline C2 nil) (headline C3 nil)) |
+| headline | Invalid         | nil                                   |
+

@@ -1,0 +1,48 @@
+* A
+** Contents
+:PROPERTIES:
+:toc:      this
+:END:
+*** Hmm
+** A1
+** A2
+** A3
+* B
+
+** B1
+
+** B2
+
+** B3
+
+* Ignore
+:PROPERTIES:
+:toc:      ignore
+:END:
+
+** Ignore1
+
+** Ignore2
+
+** Ignore3
+* Ignore-Children
+:PROPERTIES:
+:toc:      ignore-children
+:END:
+
+** Ignore-Children1
+
+** Ignore-Children2
+
+** Ignore-Children3
+* C
+
+** C1
+
+** C2
+
+** C3
+* Invalid
+:PROPERTIES:
+:toc:      
+:END:

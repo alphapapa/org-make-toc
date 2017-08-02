@@ -1,0 +1,4 @@
+(with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
+  (let ((tree (cddr (org-element-parse-buffer 'headline)))
+        (walk))
+    (org-walk-tree-pcase tree)))

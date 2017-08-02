@@ -1,0 +1,241 @@
+
+
+* Notes
+
+** DONE Get document tree
+CLOSED: [2017-08-01 Tue 22:41]
+:PROPERTIES:
+:TESTING:  testing
+:toc:      ignore
+:END:
+:LOGBOOK:
+-  State "DONE"       from "TODO"       [2017-08-01 Tue 22:41]
+:END:
+
+There are different ways to get a tree of the document structure.
+
++  =org-imenu-get-tree= returns one that should be useful.
++  =org-element-parse-buffer= is more semantic and is probably better for my uses.  It looks like it returns metadata, while =org-imenu-get-tree= is bare-bones, just what =imenu= needs. 
+
+Yeah, looks like =org-element-parse-buffer= is the way to go.
+
+*** =org-element-parse-buffer=
+
+#+BEGIN_SRC elisp :results code
+  (org-element-parse-buffer 'headline)
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC elisp
+(org-data nil
+          (headline
+           (:raw-value "Notes" :begin 1 :end 2266 :pre-blank 0 :contents-begin 9 :contents-end 2266 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 1 :title "Notes" :parent #0)
+           (headline
+            (:raw-value "Build document tree" :begin 9 :end 2266 :pre-blank 0 :contents-begin 37 :contents-end 2266 :level 2 :priority nil :tags nil :todo-keyword
+                        #("TODO" 0 4
+                          (fontified t line-prefix
+                                     #("*" 0 1
+                                       (face org-hide))
+                                     wrap-prefix
+                                     #("*** " 0 1
+                                       (face org-indent)
+                                       1 4
+                                       (face org-indent))
+                                     org-todo-head "TODO" face org-todo))
+                        :todo-type todo :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 9 :TESTING "testing" :title "Build document tree" :parent #1)
+            (headline
+             (:raw-value "=org-element-parse-buffer=" :begin 390 :end 2266 :pre-blank 1 :contents-begin 422 :contents-end 2266 :level 3 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 390 :title "=org-element-parse-buffer=" :parent #2)))))
+#+END_SRC
+
+The structure of this appears to be like:
+
++  'headline
+     -  List of properties
+     -  List for child heading
+          +  'headline
+          +  List of properties
+
+** DONE Walk tree
+CLOSED: [2017-08-02 Wed 01:08]
+:LOGBOOK:
+-  State "DONE"       from "UNDERWAY"   [2017-08-02 Wed 01:08]
+-  State "UNDERWAY"   from "DONE"       [2017-08-02 Wed 00:08]
+:END:
+
+*** cl-loop 
+:PROPERTIES:
+:ID:       b75e4923-0a34-4f3f-830c-f5157397add1
+:END:
+
+This works, but it helped me figure out how to use =org-element-map=, so I guess I'll use that.
+
+#+BEGIN_SRC elisp :results verbatim
+  (defun org-walk-tree (tree element-pred)
+    (cl-loop for element in tree
+             when (eql 'headline (car element))
+             when (funcall element-pred element)
+             collect (list 'headline
+                           :name (org-element-property :title element)
+                           :children (org-walk-tree (cddr element) element-pred))))
+
+  (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/notes.org")
+    (let ((tree (cddr (org-element-parse-buffer 'headline))))
+      (org-walk-tree tree (lambda (element)
+                            (not (string= (org-element-property :TOC element)
+                                          "ignore"))))))
+#+END_SRC
+
+#+RESULTS:
+: ((headline :name "Notes" :children ((headline :name "Filter tree" :children ((headline :name "Remove ignored headings" :children ((headline :name "org-element-map" :children nil) (headline :name "Other loop" :children nil))) (headline :name "Remove too-deep headings" :children nil) (headline :name "Remove higher headings" :children nil))) (headline :name "Transform tree to org list" :children nil) (headline :name "Find TOC element" :children nil) (headline :name "Replace TOC contents with list" :children nil))))
+
+*** org-element-map
+:PROPERTIES:
+:ID:       fbe83744-e0e9-4d44-8abc-e48809c96478
+:END:
+
+#+BEGIN_SRC elisp :results verbatim
+    (defun org-walk-tree (tree element-pred)
+      (cl-loop for element in tree
+               when (eql 'headline (car element))
+               when (funcall element-pred element)
+               collect (list 'headline
+                             :name (org-element-property :title element)
+                             :children (org-walk-tree (cdddr element) element-pred))))
+
+    (defun argh (element)
+      (unless (string= (org-element-property :TOC element)
+                       "ignore")
+        (list 'headline
+              :name (org-element-property :title element)
+              :children (org-element-map (cddr element) '(headline)
+                                 #'argh nil nil '(headline)))))
+
+    (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/notes.org")
+      (let ((tree (cddr (org-element-parse-buffer 'headline))))
+        (org-element-map tree '(headline) #'argh nil nil '(headline))))
+
+#+END_SRC
+
+#+RESULTS:
+: ((headline :name "Notes" :children ((headline :name "Filter tree" :children ((headline :name "Use treepy to walk the tree" :children nil) (headline :name "Remove ignored headings" :children ((headline :name "cl-loop" :children nil) (headline :name "org-element-map" :children nil))) (headline :name "Remove too-deep headings" :children nil) (headline :name "Remove higher headings" :children nil))) (headline :name "Transform tree to org list" :children nil) (headline :name "Find TOC element" :children nil) (headline :name "Replace TOC contents with list" :children nil))))
+
+** TODO Filter tree
+
+*** TODO Remove higher headings
+
+**** DONE Get TOC level
+CLOSED: [2017-08-02 Wed 02:06]
+:PROPERTIES:
+:ID:       b2f133c6-7d1e-4eb9-986a-cfb5aecb3905
+:END:
+:LOGBOOK:
+-  State "DONE"       from              [2017-08-02 Wed 02:06]
+:END:
+
+Ugly, but it works.  I guess the rather non-standard structure of the element tree makes this necessary.  I tried to get =treepy= working with zippers, and I almost did...
+
+#+BEGIN_SRC elisp
+  (defun org-make-toc--first-in-tree (tree element-pred)
+    (cl-loop for element in tree
+             for type = (car element)
+             if (eq 'headline type)
+             for result = (funcall element-pred element)
+             if result
+             return result
+             else
+             for children = (cddr element)
+             when children
+             for result = (org-make-toc--first-in-tree children element-pred)
+             when result
+             return result))
+#+END_SRC
+
+#+BEGIN_SRC elisp
+  (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
+    (let* ((tree (cddr (org-element-parse-buffer 'headline)))
+           (tree (org-make-toc--remove-ignored-entries tree))
+           (toc-level (org-make-toc--first-in-tree tree
+                                                   #'org-make-toc--is-toc-entry
+                                                   #'org-make-toc--element-level)))
+      toc-level))
+#+END_SRC
+
+#+RESULTS:
+
+**** TODO Remove higher ones 
+
+#+BEGIN_SRC elisp :results list
+  (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
+    (let* ((tree (cddr (org-element-parse-buffer 'headline))))
+      (org-make-toc--remove-higher-level-than-toc tree)))
+#+END_SRC
+
+#+RESULTS:
+
+*** MAYBE Remove too-deep headings
+:LOGBOOK:
+-  State "MAYBE"      from "TODO"       [2017-08-02 Wed 01:08]
+:END:
+
+*** CANCELED Use treepy to walk the tree
+CLOSED: [2017-08-02 Wed 00:07]
+:LOGBOOK:
+-  State "CANCELED"   from "TODO"       [2017-08-02 Wed 00:07]
+:END:
+
+I guess I'm just not smart enough to use treepy, because all I could get out of its walking functions were errors.  Or maybe it's just not suitable for the kind of structure =org-element-map= returns.  I don't know.
+
+#+BEGIN_SRC elisp
+  (require 'treepy)
+
+  (treepy-walk  #'identity (cddr (org-element-parse-buffer 'headline)))
+#+END_SRC
+
+*** DONE Remove ignored headings
+CLOSED: [2017-08-02 Wed 00:57]
+:LOGBOOK:
+-  State "DONE"       from "TODO"       [2017-08-02 Wed 00:57]
+:END:
+
+#+BEGIN_SRC elisp 
+  (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
+    (let ((tree (cddr (org-element-parse-buffer 'headline))))
+      (org-make-toc--remove-ignored-entries tree)))
+#+END_SRC
+
+#+RESULTS:
+| headline | A               | ((headline Contents ((headline Hmm nil))) (headline A1 nil) (headline A2 nil) (headline A3 nil)) |
+| headline | B               | ((headline B1 nil) (headline B2 nil) (headline B3 nil))                                          |
+| headline | Ignore-Children |                                                                                                  |
+| headline | C               | ((headline C1 nil) (headline C2 nil) (headline C3 nil))                                          |
+| headline | Invalid         | nil                                                                                              |
+
+* TODO Transform tree to org list
+
+With each element being a link to the real heading.  Need to support both GitHub links and Org links.
+
+** TODO Find TOC element
+
+** TODO Replace TOC contents with list
+
+** Treepy
+
+#+BEGIN_SRC elisp
+  (require 'treepy)
+
+  (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
+    (let* ((tree (cddr (org-element-parse-buffer 'headline)))
+           (zipper (treepy-zipper #'treepy-branch-p
+                                  #'treepy-children
+                                  #'treepy-make-node
+                                  tree)))
+      (treepy-children zipper)))
+
+  (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
+    (let* ((tree (cddr (org-element-parse-buffer 'headline)))
+           (zipper (treepy-zipper (lambda (loc) (eql 'headline (car loc)))
+                                  (lambda (loc) (cddr loc))
+                                  (lambda (loc) (list 'headline (cdr loc) (cddr loc)))
+                                  tree)))
+      zipper))
+#+END_SRC
