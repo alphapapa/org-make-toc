@@ -14,13 +14,17 @@
                          :children (org-walk-tree (cdddr element) element-pred))))
 
 (defun org-make-toc--filter-tree (tree pred)
-  "Return tree without elements for which PRED returns nil."
-  (cl-loop for element in tree
+  "Return tree with elements for which PRED returns non-nil."
+  (cl-loop with properties
+           for element in tree
            when (eql 'headline (car element))
-           when (funcall pred element)
+           do (org-element-property :title element)
+           if (funcall pred element)
+           do (setq properties (second element))
+           else do (setq properties nil)
            collect (list 'headline
-                         :name (org-element-property :title element)
-                         :children (org-make-toc--filter-tree (cdddr element) pred))))
+                         properties
+                         (org-make-toc--filter-tree (caddr element) pred))))
 
 (defun org-make-toc--first-in-tree (tree test-fn value-fn)
   "Return the value of VALUE-FN for the first heading in TREE that TEST-FN matches."

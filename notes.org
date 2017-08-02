@@ -121,7 +121,8 @@ This works, but it helped me figure out how to use =org-element-map=, so I guess
 
 ** TODO Filter tree
 
-*** TODO Remove higher headings
+*** DONE Remove higher headings
+CLOSED: [2017-08-02 Wed 03:42]
 
 **** DONE Get TOC level
 CLOSED: [2017-08-02 Wed 02:06]
@@ -163,15 +164,19 @@ Ugly, but it works.  I guess the rather non-standard structure of the element tr
 #+RESULTS:
 : 2
 
-**** TODO Remove higher ones 
+**** DONE Remove higher ones 
+CLOSED: [2017-08-02 Wed 03:41]
+:LOGBOOK:
+-  State "DONE"       from "TODO"       [2017-08-02 Wed 03:41]
+:END:
 
 #+BEGIN_SRC elisp :results list
   (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
-    (let* ((tree (cddr (org-element-parse-buffer 'headline))))
+    (let* ((tree (cddr (org-element-parse-buffer 'headline)))
+           (tree (org-make-toc--remove-ignored-entries tree)))
       (org-make-toc--remove-higher-level-than-toc tree)))
 #+END_SRC
 
-#+RESULTS:
 
 *** MAYBE Remove too-deep headings
 :LOGBOOK:
@@ -211,11 +216,11 @@ CLOSED: [2017-08-02 Wed 00:57]
 | headline | C               | ((headline C1 nil) (headline C2 nil) (headline C3 nil))                                          |
 | headline | Invalid         | nil                                                                                              |
 
-* TODO Transform tree to org list
+** TODO Transform tree to org list
 
 With each element being a link to the real heading.  Need to support both GitHub links and Org links.
 
-** TODO Find TOC element
+
 
 ** TODO Replace TOC contents with list
 
