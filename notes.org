@@ -219,9 +219,18 @@ CLOSED: [2017-08-02 Wed 00:57]
 | headline | C               | ((headline C1 nil) (headline C2 nil) (headline C3 nil))                                          |
 | headline | Invalid         | nil                                                                                              |
 
-** TODO Transform tree to org list
+** UNDERWAY Transform tree to org list
+:LOGBOOK:
+-  State "UNDERWAY"   from "TODO"       [2017-08-02 Wed 04:16]
+:END:
 
 With each element being a link to the real heading.  Need to support both GitHub links and Org links.
+
+*** DONE GitHub-style
+CLOSED: [2017-08-02 Wed 04:16]
+:LOGBOOK:
+-  State "DONE"       from "TODO"       [2017-08-02 Wed 04:16]
+:END:
 
 #+BEGIN_SRC elisp :results org
 (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
@@ -233,20 +242,21 @@ With each element being a link to the real heading.  Need to support both GitHub
 
 #+RESULTS:
 #+BEGIN_SRC org
-   - Contents
-    - Hmm
-   - A1
-   - A2
-   - A3
-   - B1
-   - B2
-   - B3
-   - C1
-   - C2
-   - C3
+    - [[Hmm][#hmm]]
+   - [[A1][#a1]]
+   - [[A2][#a2]]
+   - [[A3][#a3]]
+   - [[B1][#b1]]
+   - [[B2][#b2]]
+   - [[B3][#b3]]
+   - [[C1][#c1]]
+   - [[C2][#c2]]
+   - [[C3][#c3]]
 #+END_SRC
 
 ** TODO Replace TOC contents with list
+
+
 
 ** Treepy
 

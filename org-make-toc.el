@@ -1,6 +1,11 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+(require 'org)
+(require 'dash)
+(require 's)
+
 ;;;; Functions
 
 ;; FIXME: figure out for CERTAIN whether cdddr or cddr is the way to get children
@@ -49,17 +54,23 @@
            for children = (cddr element)
            when (eql 'headline type)
            for result = (pcase (org-element-property :TOC element)
-                          ("ignore"   ; Ignore this heading
+                          ;; Ignore this entry and its children
+                          ("ignore"
                            nil)
-                          ("ignore-children"  ; Ignore this heading's children
+                          ;; Keep this entry but ignore its children
+                          ("ignore-children"
                            (list type properties))
-                          ((or (pred not) "this" "")  ; Descend into tree
+                          ;; Normal entry: descend into tree
+                          ((or (pred not) "")
                            (list type properties (org-make-toc--remove-ignored-entries children)))
-                          (other  ; Invalid setting
-                           (progn
-                             (goto-char (org-element-property :begin element))
-                             (user-error "Invalid value for TOC property at entry \"%s\": %s"
-                                         (org-element-property :title element) other))))
+                          ;; TOC entry; descend into but leave this entry blank so it won't be in the TOC
+                          ("this"
+                           (list type (plist-put properties :title nil) (org-make-toc--remove-ignored-entries children)))
+                          ;; Invalid setting
+                          (other
+                           (goto-char (org-element-property :begin element))
+                           (user-error "Invalid value for TOC property at entry \"%s\": %s"
+                                       (org-element-property :title element) other)))
            when result
            collect result))
 
@@ -97,7 +108,8 @@
                                          for indent = (s-repeat (1+ level) " ")
                                          for title = (org-element-property :title element)
                                          for children = (org-make-toc--tree-to-list (caddr element))
-                                         collect (concat indent "-" " " title "\n" children))))
+                                         for link = (org-make-toc--link-entry-github element)
+                                         collect (concat indent "-" " " link "\n" children))))
          (contents (with-temp-buffer
                      (insert contents)
                      (goto-char (point-min))
@@ -106,6 +118,12 @@
                                       eol))
                      (buffer-string))))
     contents))
+
+(defun org-make-toc--link-entry-github (entry)
+  "Return text for ENTRY converted to GitHub style link."
+  (-when-let* ((title (org-element-property :title entry))
+               (target (s-replace-all '((" " . "-")) title)))
+    (concat "[[" title "][" "#" target "]]")))
 
 ;;;;; Misc
 
