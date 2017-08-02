@@ -88,7 +88,31 @@
   (org-element-property :title element)
   (string= "this" (org-element-property :TOC element)))
 
+;;;;; Transformer
+
+(defun org-make-toc--tree-to-list (tree)
+  (let* ((contents (s-join "\n" (cl-loop with toc-level = (org-make-toc--toc-level tree)
+                                         for element in tree
+                                         for level = (or (org-element-property :level element) 0)
+                                         for indent = (s-repeat (1+ level) " ")
+                                         for title = (org-element-property :title element)
+                                         for children = (org-make-toc--tree-to-list (caddr element))
+                                         collect (concat indent "-" " " title "\n" children))))
+         (contents (with-temp-buffer
+                     (insert contents)
+                     (goto-char (point-min))
+                     (flush-lines (rx bol
+                                      (optional (1+ space) "-" (1+ space))
+                                      eol))
+                     (buffer-string))))
+    contents))
+
 ;;;;; Misc
 
 (defun org-make-toc--element-level (element)
   (org-element-property :level element))
+
+(defun org-make-toc--toc-level (tree)
+  (org-make-toc--first-in-tree tree
+                               #'org-make-toc--is-toc-entry
+                               #'org-make-toc--element-level))
