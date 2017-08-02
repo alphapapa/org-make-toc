@@ -161,6 +161,7 @@ Ugly, but it works.  I guess the rather non-standard structure of the element tr
 #+END_SRC
 
 #+RESULTS:
+: 2
 
 **** TODO Remove higher ones 
 

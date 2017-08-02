@@ -27,12 +27,12 @@
   ;; In a way this is ugly, but in another way it's not, and it works.
   (cl-loop for element in tree
            for type = (car element)
+           do (org-element-property :title element)
            if (eq 'headline type)
-           when (prog1 (funcall test-fn element)
-                  (org-element-property :title element))
+           when (funcall test-fn element)
            return (funcall value-fn element)
            else
-           for children = (cddr element)
+           for children = (caddr element)
            when children
            for result = (org-make-toc--first-in-tree children test-fn value-fn)
            when result
@@ -41,7 +41,7 @@
 (defun org-make-toc--remove-ignored-entries (tree)
   (cl-loop for element in tree
            for type = (car element)
-           for properties = (org-element-property :title element) ; FIXME: (second element)
+           for properties = (second element) ; (list :title (org-element-property :title element));; (second element)  ; (org-element-property :title element)
            for children = (cddr element)
            when (eql 'headline type)
            for result = (pcase (org-element-property :TOC element)
@@ -81,6 +81,7 @@
 ;;;;; Predicates
 
 (defun org-make-toc--is-toc-entry (element)
+  (org-element-property :title element)
   (string= "this" (org-element-property :TOC element)))
 
 ;;;;; Misc
