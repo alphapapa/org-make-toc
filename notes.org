@@ -256,7 +256,31 @@ CLOSED: [2017-08-02 Wed 04:16]
 
 ** TODO Replace TOC contents with list
 
+#+BEGIN_SRC elisp
+  (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
+    (-when-let* ((tree (cddr (org-element-parse-buffer 'headline)))
+                 (tree (org-make-toc--remove-ignored-entries tree))
+                 (tree (org-make-toc--remove-higher-level-than-toc tree))
+                 (list (org-make-toc--tree-to-list tree))
+                 (pos (org-find-property "TOC" "this")))
+      (org-make-toc--replace-entry-contents pos list)))
 
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+    - [[#hmm][Hmm]]
+    - [[#oho][Oho]]
+   - [[#a1][A1]]
+   - [[#a2][A2]]
+   - [[#a3][A3]]
+   - [[#b1][B1]]
+   - [[#b2][B2]]
+   - [[#b3][B3]]
+   - [[#c1][C1]]
+   - [[#c2][C2]]
+   - [[#c3][C3]]
+#+end_example
 
 ** Treepy
 

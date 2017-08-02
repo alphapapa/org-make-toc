@@ -122,8 +122,8 @@
 (defun org-make-toc--link-entry-github (entry)
   "Return text for ENTRY converted to GitHub style link."
   (-when-let* ((title (org-element-property :title entry))
-               (target (s-replace-all '((" " . "-")) title)))
-    (concat "[[" title "][" "#" target "]]")))
+               (target (s-replace-all '((" " . "-")) (downcase title))))
+    (concat "[[" "#" target "][" title "]]")))
 
 ;;;;; Misc
 
@@ -134,3 +134,31 @@
   (org-make-toc--first-in-tree tree
                                #'org-make-toc--is-toc-entry
                                #'org-make-toc--element-level))
+
+(defun org-make-toc--replace-entry-contents (pos contents)
+  "Replace the contents of entry at POS with CONTENTS."
+  (save-excursion
+    (goto-char pos)
+    (let ((end (org-entry-end-position))
+          last-match)
+      ;; Skip past property drawer
+      (while (or (org-at-drawer-p)
+                 (not (equal last-match "END")))
+        (re-search-forward org-drawer-regexp end)
+        (setq last-match (match-string 1))
+        (forward-line 1))
+      (setf (buffer-substring (point) end) contents))))
+
+(defun org-make-toc--replace-entry-contents (pos contents)
+  "Replace the contents of entry at POS with CONTENTS."
+  (save-excursion
+    (goto-char pos)
+    (forward-line 1)
+    (let ((end (org-entry-end-position)))
+      ;; Skip past property drawer
+      (while (or (org-at-drawer-p)
+                 (org-at-property-p))
+        (re-search-forward org-drawer-regexp end)
+        (forward-line 1))
+      (forward-line 1)
+      (setf (buffer-substring (1- (point)) end) contents))))
