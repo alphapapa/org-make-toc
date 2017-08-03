@@ -36,15 +36,16 @@
 (defun org-make-toc--filter-tree (tree pred)
   "Return tree with elements for which PRED returns non-nil."
   (cl-loop with properties
+           with children
            for element in tree
            when (eql 'headline (car element))
-           do (org-element-property :title element)
+           do (setq children (caddr element))
            if (funcall pred element)
            do (setq properties (second element))
            else do (setq properties nil)
            collect (list 'headline
                          properties
-                         (org-make-toc--filter-tree (caddr element) pred))))
+                         (org-make-toc--filter-tree children pred))))
 
 (defun org-make-toc--first-in-tree (tree test-fn value-fn)
   "Return the value of VALUE-FN for the first heading in TREE that TEST-FN matches."
