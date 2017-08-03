@@ -117,22 +117,20 @@
 ;;;;; Transformer
 
 (defun org-make-toc--tree-to-list (tree)
-  (let* ((contents (s-join "\n" (cl-loop with toc-level = (org-make-toc--toc-level tree)
-                                         for element in tree
-                                         for level = (or (org-element-property :level element) 0)
-                                         for indent = (s-repeat (1+ level) " ")
-                                         for title = (org-element-property :title element)
-                                         for children = (org-make-toc--tree-to-list (caddr element))
-                                         for link = (org-make-toc--link-entry-github element)
-                                         collect (concat indent "-" " " link "\n" children))))
-         (contents (with-temp-buffer
-                     (insert contents)
-                     (goto-char (point-min))
-                     (flush-lines (rx bol
-                                      (optional (1+ space) "-" (1+ space))
-                                      eol))
-                     (buffer-string))))
-    contents))
+  (let* ((contents (s-join "\n"
+                           (cl-loop with toc-level = (org-make-toc--toc-level tree)
+                                    for element in tree
+                                    for level = (or (org-element-property :level element) 0)
+                                    for indent = (s-repeat (1+ level) " ")
+                                    for title = (org-element-property :title element)
+                                    for children = (org-make-toc--tree-to-list (caddr element))
+                                    for link = (org-make-toc--link-entry-github element)
+                                    collect (concat indent "-" " " link "\n" children)))))
+    (with-temp-buffer
+      (insert contents)
+      (goto-char (point-min))
+      (flush-lines (rx bol (optional (1+ space) "-" (1+ space)) eol))
+      (buffer-string))))
 
 (defun org-make-toc--link-entry-github (entry)
   "Return text for ENTRY converted to GitHub style link."
