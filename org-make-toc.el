@@ -6,6 +6,21 @@
 (require 'dash)
 (require 's)
 
+;;;; Variables
+
+(defgroup org-make-toc nil
+  "Settings for `org-make-toc'."
+  :group 'org
+  :link '(url-link "http://github.com/alphapapa/org-make-toc"))
+
+(defcustom org-make-toc--github-replacements
+  '((" " . "-")
+    (":" . "")
+    ("–" . ""))
+  "A list of (MATCH . REPLACE) pairs, containing characters that
+  will be replaced in link targets for GitHub-intended tables of
+  contents.")
+
 ;;;; Functions
 
 ;; FIXME: figure out for CERTAIN whether cdddr or cddr is the way to get children
@@ -123,9 +138,7 @@
   "Return text for ENTRY converted to GitHub style link."
   (-when-let* ((title (org-element-property :title entry))
                (title (org-link-display-format title))
-               (target (s-replace-all '((" " . "-")
-                                        (":" . "")
-                                        ("–" . ""))
+               (target (s-replace-all org-make-toc--github-replacements
                                       (downcase title))))
     (concat "[[" "#" target "][" title "]]")))
 
