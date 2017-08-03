@@ -154,5 +154,6 @@
                  (org-at-property-p))
         (re-search-forward org-drawer-regexp end)
         (forward-line 1))
-      (forward-line 1)
-      (setf (buffer-substring (1- (point)) end) contents))))
+      ;;  (forward-line 1)
+      (beginning-of-line)
+      (setf (buffer-substring (point) end) contents))))
