@@ -58,3 +58,10 @@
 :PROPERTIES:
 :toc:      
 :END:
+* Depth
+:PROPERTIES:
+:TOC:      1
+:END:
+** D1
+*** D2
+**** D3

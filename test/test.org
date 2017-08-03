@@ -1,5 +1,3 @@
-
-
 * Tests
 
 ** Pcase
@@ -18,3 +16,18 @@
 | headline | C               | ((headline C2 nil) (headline C3 nil)) |
 | headline | Invalid         | nil                                   |
 
+** Depth
+
+#+BEGIN_SRC elisp
+  (with-current-buffer (find-buffer-visiting "~/src/org-make-toc/test/data.org")
+    (let ((tree (cddr (org-element-parse-buffer 'headline))))
+      (org-make-toc--remove-ignored-entries tree)))
+#+END_SRC
+
+#+RESULTS:
+| headline | (:title A)               | ((headline (:title nil) ((headline (:title Hmm) nil) (headline (:title Oho) nil))) (headline (:title A1) nil) (headline (:title A2) nil) (headline (:title A3) nil)) |
+| headline | (:title B)               | ((headline (:title B1) nil) (headline (:title B2) nil) (headline (:title B3) nil))                                                                                   |
+| headline | (:title Ignore-Children) |                                                                                                                                                                      |
+| headline | (:title C)               | ((headline (:title C1) nil) (headline (:title C2) nil) (headline (:title C3) nil))                                                                                   |
+| headline | (:title Invalid)         | nil                                                                                                                                                                  |
+| headline | (:title nil)             | ((headline (:title nil) nil))                                                                                                                                        |

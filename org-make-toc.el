@@ -13,6 +13,20 @@
   :group 'org
   :link '(url-link "http://github.com/alphapapa/org-make-toc"))
 
+;;;; Commands
+
+(defun org-make-toc-make-toc ()
+  "Make or update table of contents in current buffer."
+  (interactive)
+  (let* ((toc-position (or (org-find-property "TOC" "this")
+                           (user-error "No TOC node found.  A node must have the \"TOC\" property set to \"this\"")))
+         (list (or (->> (cddr (org-element-parse-buffer 'headline))
+                        (org-make-toc--remove-ignored-entries)
+                        (org-make-toc--remove-higher-level-than-toc)
+                        (org-make-toc--tree-to-list))
+                   (error "Failed to build table of contents"))))
+    (org-make-toc--replace-entry-contents toc-position list)))
+
 ;;;; Functions
 
 ;; FIXME: figure out for CERTAIN whether cdddr or cddr is the way to get children
@@ -55,10 +69,15 @@
            when result
            return result))
 
-(defun org-make-toc--remove-ignored-entries (tree)
-  (cl-loop for element in tree
+(cl-defun org-make-toc--remove-ignored-entries (tree &key depth)
+  (cl-loop when (and depth
+                     (<= depth 0))
+           return nil
+
+           for element in tree
            for type = (car element)
            for properties = (second element) ; (list :title (org-element-property :title element));; (second element)  ; (org-element-property :title element)
+
            for children = (cddr element)
            when (eql 'headline type)
            for result = (pcase (org-element-property :TOC element)
@@ -70,10 +89,26 @@
                            (list type properties))
                           ;; Normal entry: descend into tree
                           ((or (pred not) "")
-                           (list type properties (org-make-toc--remove-ignored-entries children)))
+                           (list type
+                                 properties
+                                 (org-make-toc--remove-ignored-entries children
+                                                                       :depth (when depth
+                                                                                (1- depth)))))
                           ;; TOC entry; descend into but leave this entry blank so it won't be in the TOC
                           ("this"
-                           (list type (plist-put properties :title nil) (org-make-toc--remove-ignored-entries children)))
+                           (list type
+                                 (plist-put properties :title nil)
+                                 (org-make-toc--remove-ignored-entries children
+                                                                       :depth (when depth
+                                                                                (1- depth)))))
+                          ;; Depth setting
+                          ((and number (guard (string-to-number number)))
+                           (list type
+                                 properties
+                                 (org-make-toc--remove-ignored-entries children
+                                                                       :depth (or (when depth
+                                                                                    (1- depth))
+                                                                                  (1- (string-to-number number))))))
                           ;; Invalid setting
                           (other
                            (goto-char (org-element-property :begin element))
@@ -157,3 +192,5 @@
       ;;  (forward-line 1)
       (beginning-of-line)
       (setf (buffer-substring (point) end) contents))))
+
+(provide 'org-make-toc)
