@@ -184,12 +184,7 @@
     (goto-char pos)
     (forward-line 1)
     (let ((end (org-entry-end-position)))
-      ;; Skip past property drawer
-      (while (or (org-at-drawer-p)
-                 (org-at-property-p))
-        (re-search-forward org-drawer-regexp end)
-        (forward-line 1))
-      ;;  (forward-line 1)
+      (org-end-of-meta-data)
       (beginning-of-line)
       (setf (buffer-substring (point) end) contents))))
 
