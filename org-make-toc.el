@@ -149,7 +149,7 @@
                            (cl-loop with toc-level = (org-make-toc--toc-level tree)
                                     for element in tree
                                     for level = (or (org-element-property :level element) 0)
-                                    for indent = (s-repeat (1+ level) " ")
+                                    for indent = (s-repeat (* 2 level) " ")
                                     for title = (org-element-property :title element)
                                     for children = (org-make-toc--tree-to-list (caddr element))
                                     for link = (org-make-toc--link-entry-github element)
