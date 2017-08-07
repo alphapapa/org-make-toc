@@ -71,7 +71,7 @@
 
 (cl-defun org-make-toc--remove-ignored-entries (tree &key depth)
   (cl-loop when (and depth
-                     (<= depth 0))
+                     (< depth 0))
            return nil
 
            for element in tree
@@ -85,7 +85,7 @@
                           ("ignore"
                            nil)
                           ;; Keep this entry but ignore its children
-                          ("ignore-children"
+                          ((or "ignore-children" "0")
                            (list type properties))
                           ;; Normal entry: descend into tree
                           ((or (pred not) "")
