@@ -153,7 +153,7 @@
                                     for title = (org-element-property :title element)
                                     for children = (org-make-toc--tree-to-list (caddr element))
                                     for link = (org-make-toc--link-entry-github element)
-                                    collect (concat indent "-" " " link "\n" children)))))
+                                    collect (concat indent "-" "  " link "\n" children)))))
     (with-temp-buffer
       (insert contents)
       (goto-char (point-min))
