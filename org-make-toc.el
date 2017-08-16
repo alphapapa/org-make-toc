@@ -164,7 +164,7 @@
                (title (org-link-display-format title))
                (target (replace-regexp-in-string " " "-" (downcase title)))
                (target (replace-regexp-in-string "[^[:alnum:]_-]" "" target)))
-    (concat "[[" "#" target "][" title "]]")))
+    (format "[[#%s][%s]]" target title)))
 
 ;;;;; Misc
 
