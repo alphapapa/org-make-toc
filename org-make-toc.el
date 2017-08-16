@@ -18,13 +18,17 @@
 (defun org-make-toc-make-toc ()
   "Make or update table of contents in current buffer."
   (interactive)
-  (let* ((toc-position (or (org-find-property "TOC" "this")
-                           (user-error "No TOC node found.  A node must have the \"TOC\" property set to \"this\"")))
-         (list (or (->> (cddr (org-element-parse-buffer 'headline))
-                        (org-make-toc--remove-ignored-entries)
-                        (org-make-toc--remove-higher-level-than-toc)
-                        (org-make-toc--tree-to-list))
-                   (error "Failed to build table of contents"))))
+  (when-let ((toc-position (or (org-find-property "TOC" "this")
+                               (when (called-interactively-p)
+                                 ;; Don't error unless the user called this function manually,
+                                 ;; e.g. if it's added to the before-save-hook in all Org mode
+                                 ;; files, don't error just because a file doesn't have a TOC.
+                                 (user-error "No TOC node found.  A node must have the \"TOC\" property set to \"this\""))))
+             (list (or (->> (cddr (org-element-parse-buffer 'headline))
+                            (org-make-toc--remove-ignored-entries)
+                            (org-make-toc--remove-higher-level-than-toc)
+                            (org-make-toc--tree-to-list))
+                       (error "Failed to build table of contents"))))
     (org-make-toc--replace-entry-contents toc-position list)))
 
 ;;;; Functions
