@@ -132,10 +132,6 @@
 
 ;;;;; Predicates
 
-(defun org-make-toc--toc-entry-p (element)
-  (org-element-property :title element)
-  (string= "this" (org-element-property :TOC element)))
-
 (defun org-make-toc--include-heading-p (element)
   "Return non-nil if heading should be included in ToC."
   (pcase (org-element-property :TOC element)
@@ -143,6 +139,10 @@
     ('nil t)
     (other (user-error "Invalid value for TOC property at position %s: "
                        (point) other))))
+
+(defun org-make-toc--toc-entry-p (element)
+  (org-element-property :title element)
+  (string= "this" (org-element-property :TOC element)))
 
 ;;;;; Transformer
 
