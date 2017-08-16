@@ -29,8 +29,6 @@
 
 ;;;; Functions
 
-;; FIXME: figure out for CERTAIN whether cdddr or cddr is the way to get children
-
 (defun org-walk-tree (tree element-pred)
   (cl-loop for element in tree
            when (eql 'headline (car element))
