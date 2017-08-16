@@ -124,7 +124,7 @@
 (defun org-make-toc--remove-higher-level-than-toc (tree)
   "Return TREE without headings that have a higher level than the TOC."
   (let ((toc-level (org-make-toc--first-in-tree tree
-                                                #'org-make-toc--is-toc-entry
+                                                #'org-make-toc--toc-entry-p
                                                 #'org-make-toc--element-level)))
     (org-make-toc--filter-tree tree (lambda (element)
                                       (>= (org-element-property :level element)
@@ -132,7 +132,7 @@
 
 ;;;;; Predicates
 
-(defun org-make-toc--is-toc-entry (element)
+(defun org-make-toc--toc-entry-p (element)
   (org-element-property :title element)
   (string= "this" (org-element-property :TOC element)))
 
@@ -177,7 +177,7 @@
 
 (defun org-make-toc--toc-level (tree)
   (org-make-toc--first-in-tree tree
-                               #'org-make-toc--is-toc-entry
+                               #'org-make-toc--toc-entry-p
                                #'org-make-toc--element-level))
 
 (defun org-make-toc--replace-entry-contents (pos contents)
