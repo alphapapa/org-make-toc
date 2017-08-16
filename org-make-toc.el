@@ -128,7 +128,13 @@
                                                 #'org-make-toc--element-level)))
     (org-make-toc--filter-tree tree (lambda (element)
                                       (>= (org-element-property :level element)
-                                          toc-level)))))
+                                         toc-level)))))
+
+;;;;; Predicates
+
+(defun org-make-toc--is-toc-entry (element)
+  (org-element-property :title element)
+  (string= "this" (org-element-property :TOC element)))
 
 (defun org-make-toc--include-heading-p (element)
   "Return non-nil if heading should be included in ToC."
@@ -137,12 +143,6 @@
     ('nil t)
     (other (user-error "Invalid value for TOC property at position %s: "
                        (point) other))))
-
-;;;;; Predicates
-
-(defun org-make-toc--is-toc-entry (element)
-  (org-element-property :title element)
-  (string= "this" (org-element-property :TOC element)))
 
 ;;;;; Transformer
 
