@@ -219,6 +219,10 @@ CLOSED: [2017-08-02 Wed 00:57]
 | headline | C               | ((headline C1 nil) (headline C2 nil) (headline C3 nil))                                          |
 | headline | Invalid         | nil                                                                                              |
 
+** TODO Use =org-list-to-org= from Org 9.1
+
+Should be a nicer way to turn the ToC into the list string.
+
 ** TODO Check out [[https://github.com/Fuco1/orgpath][orgpath]]
 
 This looks really cool, although he seems to have abandoned it.  I cloned a local copy to src/misc/org.  Studying his functions that build a tree should be very helpful.
