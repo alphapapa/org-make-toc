@@ -173,7 +173,14 @@
     (with-temp-buffer
       (insert contents)
       (goto-char (point-min))
-      (flush-lines (rx bol (optional (1+ space) "-" (1+ space)) eol))
+      ;; Remove blank lines and blank list items (ignored items with
+      ;; non-ignored children are left as parent nodes, so we must
+      ;; delete them; this is probably the easiest way)
+      (flush-lines (rx bol (optional
+                            (optional (1+ space))
+                            "-"
+                            (optional (1+ space)))
+                       eol))
       (buffer-string))))
 
 (defun org-make-toc--link-entry-github (entry)
