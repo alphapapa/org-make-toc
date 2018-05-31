@@ -220,6 +220,9 @@ CLOSED: [2017-08-02 Wed 00:57]
 | headline | Invalid         | nil                                                                                              |
 
 ** TODO Use =org-list-to-org= from Org 9.1
+:PROPERTIES:
+:ID:       bafab4a8-6084-40ff-ae0e-5b601b5c034e
+:END:
 
 Should be a nicer way to turn the ToC into the list string.
 
