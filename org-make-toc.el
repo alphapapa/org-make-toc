@@ -181,6 +181,9 @@
                             "-"
                             (optional (1+ space)))
                        eol))
+      ;; Insert blank line after list
+      (goto-char (point-max))
+      (insert "\n")
       (buffer-string))))
 
 (defun org-make-toc--link-entry-github (entry)
