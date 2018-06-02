@@ -91,15 +91,6 @@
 
 ;;;; Functions
 
-(defun org-make-toc--walk-tree (tree element-pred)
-  "Walk TREE and collect elements matching ELEMENT-PRED."
-  (cl-loop for element in tree
-           when (eql 'headline (car element))
-           when (funcall element-pred element)
-           collect (list 'headline
-                         :name (org-element-property :title element)
-                         :children (org-make-toc--walk-tree (cdddr element) element-pred))))
-
 (defun org-make-toc--filter-tree (tree pred)
   "Return TREE with elements for which PRED returns non-nil."
   (cl-loop with properties
@@ -131,14 +122,14 @@
            return result))
 
 (cl-defun org-make-toc--remove-ignored-entries (tree &key depth)
+  "Return TREE without ignored entries, up to DEPTH."
   (cl-loop when (and depth
                      (< depth 0))
            return nil
 
            for element in tree
            for type = (car element)
-           for properties = (second element) ; (list :title (org-element-property :title element));; (second element)  ; (org-element-property :title element)
-
+           for properties = (second element)
            for children = (cddr element)
            when (eql 'headline type)
            for result = (pcase (org-element-property :TOC element)
