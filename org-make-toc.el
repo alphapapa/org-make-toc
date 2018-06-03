@@ -26,7 +26,7 @@
 ;; 1.  Make a heading in the Org file where you want the table of contents, and give it the Org
 ;; property "TOC" with the value "this".
 
-;; 2.  Run the command `org-make-toc-make-toc'.
+;; 2.  Run the command `org-make-toc'.
 
 ;;;;; Customization
 
@@ -39,7 +39,7 @@
 ;;;;; Automatically update on save
 
 ;; To automatically update a file's TOC when the file is saved, use the command
-;; `add-file-local-variable' to add `org-make-toc-make-toc' to the Org file's `before-save-hook'.
+;; `add-file-local-variable' to add `org-make-toc' to the Org file's `before-save-hook'.
 
 ;;; License:
 
@@ -74,7 +74,8 @@
 
 ;;;; Commands
 
-(defun org-make-toc-make-toc ()
+;;;###autoload
+(defun org-make-toc ()
   "Make or update table of contents in current buffer."
   (interactive)
   (when-let ((toc-position (or (org-find-property "TOC" "this")
