@@ -89,7 +89,7 @@ GPLv3
 
 # Local Variables:
 # eval: (require 'org-make-toc)
-# before-save-hook: (lambda nil (org-make-toc-make-toc))
+# before-save-hook: (lambda nil (org-make-toc))
 # org-export-with-properties: ()
 # org-export-with-title: t
 # End:
