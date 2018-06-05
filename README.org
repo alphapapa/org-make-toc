@@ -5,7 +5,7 @@
 :TOC:      ignore
 :END:
 
-[[https://melpa.org/#/helm-org-rifle][file:https://melpa.org/packages/org-make-toc-badge.svg]] [[https://stable.melpa.org/#/helm-org-rifle][file:https://stable.melpa.org/packages/org-make-toc-badge.svg]]
+[[https://melpa.org/#/org-make-toc][file:https://melpa.org/packages/org-make-toc-badge.svg]]
 
 This package makes it easy to have a customizable table of contents in Org files that can be updated manually, or automatically when the file is saved.  Links to headings are created compatible with GitHub's Org renderer.
 
