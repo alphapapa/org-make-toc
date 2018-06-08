@@ -1,5 +1,9 @@
 #+PROPERTY: LOGGING nil
 
+#+BEGIN_HTML
+<a href=https://alphapapa.github.io/dont-tread-on-emacs/><img src="dont-tread-on-emacs-150.png" align="right"></a>
+#+END_HTML
+
 * org-make-toc
 :PROPERTIES:
 :TOC:      ignore
@@ -7,7 +11,7 @@
 
 [[https://melpa.org/#/org-make-toc][file:https://melpa.org/packages/org-make-toc-badge.svg]]
 
-This package makes it easy to have a customizable table of contents in Org files that can be updated manually, or automatically when the file is saved.  Links to headings are created compatible with GitHub's Org renderer.
+This package makes it easy to one or more customizable tables of contents in Org files that can be updated manually, or automatically when the file is saved.  Links to headings are created compatible with GitHub's Org renderer.
 
 * Contents                                                         :noexport:
 :PROPERTIES:
@@ -18,7 +22,6 @@ This package makes it easy to have a customizable table of contents in Org files
   -  [[#changelog][Changelog]]
   -  [[#credits][Credits]]
   -  [[#development][Development]]
-  -  [[#license][License]]
 
 * Installation
 :PROPERTIES:
@@ -38,9 +41,9 @@ If you installed from MELPA, you're done.
 
   Then put this file in your load-path, and put this in your init file:
 
-  #+BEGIN_SRC elisp
+#+BEGIN_SRC elisp
     (require 'org-make-toc)
-  #+END_SRC
+#+END_SRC
 
 * Usage
 :PROPERTIES:
@@ -50,26 +53,46 @@ If you installed from MELPA, you're done.
 1.  Make a heading in the Org file where you want the table of contents, and give it the Org property =TOC= with the value =this=.
 2.  Run the command =org-make-toc=.
 
-** Customization
+** Advanced
 
-The table of contents can be customized by setting the =TOC= property of headings:
+A document may contain multiple tables of contents.  Tables of contents can be customized by setting the =TOC= property of headings to these values:
 
-+  Set to =ignore= to omit a heading from the TOC.
-+  Set to =ignore-children= or =0= to omit a heading's child headings from the TOC.
-+  Set to a number =N= to include child headings no more than =N= levels deep in the TOC.
++  =all=: Include all headings in the file, except ignored headings.
++  =children=: Include only child headings of this ToC.
++  =siblings=: Include only sibling headings of this ToC.
++  =ignore=: Omit a heading from the TOC.
++  =ignore-children= or =0=: Omit a heading's child headings from the TOC.
++  a number =N=: Include child headings no more than =N= levels deep in the TOC.
 
 ** Automatically update on save
 
 To automatically update a file's TOC when the file is saved, use the command =add-file-local-variable= to add =org-make-toc= to the Org file's =before-save-hook=.
 
+Or, you may activate it in all Org buffers like this:
+
+#+BEGIN_SRC elisp
+  (add-hook 'org-mode-hook #'org-make-toc-mode)
+#+END_SRC
+
 ** Example
 
-See [[https://raw.githubusercontent.com/alphapapa/org-make-toc/master/README.org][this readme file]] for an example of the features described above.
+See [[https://github.com/alphapapa/org-make-toc/blob/master/example.org][example.org]] for a comprehensive example of the features described above.
 
 * Changelog
 :PROPERTIES:
 :TOC:      0
 :END:
+
+** 0.2
+
+*Additions*
++  Multiple tables of contents are now supported in a single document.
++  Entries' =TOC= property can now also be set to the values =all=, =children=, and =siblings=, which allow tables of contents to be created for only parts of a document.
+     -  =all= includes all entries in a document, including other tables of contents, except ignored entries.
+     -  =children= includes only child entries, except ignored entries.
+     -  =siblings= includes only sibling entries, except ignored entries.
++  The command =org-make-toc-mode= toggles =org-make-toc= on the =before-save-hook= in the current buffer.  This may be added to the global =org-mode-hook= to activate it in every Org buffer.
++  The =examples.org= file shows an example of all of the options used together in a complex, book-like document.
 
 ** 0.1
 
@@ -84,12 +107,15 @@ This package was inspired by Sergei Nosov's [[https://github.com/snosov1/toc-org
 Bug reports, feature requests, suggestions — /oh my/!
 
 * License
+:PROPERTIES:
+:TOC:      ignore
+:END:
 
 GPLv3
 
 # Local Variables:
 # eval: (require 'org-make-toc)
-# before-save-hook: (lambda nil (org-make-toc))
+# before-save-hook: org-make-toc
 # org-export-with-properties: ()
 # org-export-with-title: t
 # End:

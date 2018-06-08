@@ -4,13 +4,13 @@
 
 ;; Author: Adam Porter <adam@alphapapa.net>
 ;; URL: http://github.com/alphapapa/org-make-toc
-;; Version: 0.1
+;; Version: 0.2-pre
 ;; Package-Requires: ((emacs "25.1") (dash "2.12") (s "1.10.0") (org "9.0"))
 ;; Keywords: Org, convenience
 
 ;;; Commentary:
 
-;; This package makes it easy to have a customizable table of contents in Org files that can be
+;; This package makes it easy to have one or more customizable tables of contents in Org files that can be
 ;; updated manually, or automatically when the file is saved.  Links to headings are created
 ;; compatible with GitHub's Org renderer.
 
@@ -28,18 +28,26 @@
 
 ;; 2.  Run the command `org-make-toc'.
 
-;;;;; Customization
+;;;;; Advanced
 
-;; The table of contents can be customized by setting the "TOC" property of headings:
+;; A document may contain multiple tables of contents.  Tables of contents can be customized by
+;; setting the "TOC" property of headings to these values:
 
-;; +  Set to "ignore" to omit a heading from the TOC.
-;; +  Set to "ignore-children" or "0" to omit a heading's child headings from the TOC.
-;; +  Set to a number N to include child headings no more than N levels deep in the TOC.
+;; +  "all": Include all headings in the file, except ignored headings.
+;; +  "children": Include only child headings of this ToC.
+;; +  "siblings": Include only sibling headings of this ToC.
+;; +  "ignore": Omit a heading from the TOC.
+;; +  "ignore-children" or "0": Omit a heading's child headings from the TOC.
+;; +  a number "N": Include child headings no more than "N" levels deep in the TOC.
 
 ;;;;; Automatically update on save
 
 ;; To automatically update a file's TOC when the file is saved, use the command
-;; `add-file-local-variable' to add `org-make-toc' to the Org file's `before-save-hook'.
+;; "add-file-local-variable" to add "org-make-toc" to the Org file's "before-save-hook".
+
+;; Or, you may activate it in all Org buffers like this:
+
+;;   (add-hook 'org-mode-hook #'org-make-toc-mode)
 
 ;;; License:
 
@@ -78,19 +86,62 @@
 (defun org-make-toc ()
   "Make or update table of contents in current buffer."
   (interactive)
-  (when-let ((toc-position (or (org-find-property "TOC" "this")
-                               (let ((message "No TOC node found.  A node must have the \"TOC\" property set to \"this\""))
-                                 (if (called-interactively-p 'interactive)
-                                     (message message)
-                                   (user-error message)))))
-             (list (or (->> (cddr (org-element-parse-buffer 'headline))
-                            (org-make-toc--remove-ignored-entries)
-                            (org-make-toc--remove-higher-level-than-toc)
-                            (org-make-toc--tree-to-list))
-                       (error "Failed to build table of contents"))))
-    (org-make-toc--replace-entry-contents toc-position list)))
+  (save-excursion
+    (goto-char (point-min))
+    (let (toc-position type made-toc)
+      (cl-loop while (and (setq toc-position (org-make-toc--find-next-property "TOC"))
+                          (setq type (org-entry-get toc-position "TOC")))
+               when (member type '("this" "all" "siblings" "children"))
+               do (progn
+                    (goto-char toc-position)
+                    (save-excursion
+                      (save-restriction
+                        (pcase type
+                          ;; Widen or narrow as necessary
+                          ((or "this" "all") (widen))
+                          ("siblings" (progn
+                                        (ignore-errors
+                                          (outline-up-heading 1))
+                                        (narrow-to-region (save-excursion
+                                                            (forward-line 1)
+                                                            (point))
+                                                          (save-excursion
+                                                            (org-end-of-subtree)
+                                                            (point)))))
+                          ("children" (org-narrow-to-subtree)))
+                        (org-make-toc--replace-entry-contents
+                         toc-position
+                         (or (--> (cddr (org-element-parse-buffer 'headline))
+                                  (org-make-toc--remove-ignored-entries it :keep-all (string= type "all"))
+                                  ;;  (org-make-toc--remove-higher-level-than-toc)
+                                  (org-make-toc--tree-to-list it))
+                             (error "Failed to build table of contents")))))
+                    (setq made-toc t))
+               do (or (outline-next-heading)
+                      (goto-char (point-max)))
+               finally do (unless made-toc
+                            (let ((message "No TOC node found.  A node must have the \"TOC\" property set to \"this\", \"all\", \"siblings\", or \"children\"."))
+                              (if (called-interactively-p 'interactive)
+                                  (message message)
+                                (user-error message))))))))
 
 ;;;; Functions
+
+(defun org-make-toc--find-next-property (property &optional value)
+  "Return position of next entry in buffer that has PROPERTY, or nil if none is found.
+When VALUE is non-nil, find entries for which PROPERTY has VALUE.
+Like `org-find-property', but searches forward from point instead
+of from the beginning of the buffer."
+  (save-excursion
+    (let ((case-fold-search t)
+          (re (org-re-property property nil (not value) value)))
+      (cl-loop while (re-search-forward re nil t)
+               when (if value
+                        (org-at-property-p)
+                      (org-entry-get (point) property nil t))
+               return (progn
+                        (org-back-to-heading t)
+                        (point))))))
 
 (defun org-make-toc--filter-tree (tree pred)
   "Return TREE with elements for which PRED returns non-nil."
@@ -122,8 +173,9 @@
            when result
            return result))
 
-(cl-defun org-make-toc--remove-ignored-entries (tree &key depth)
-  "Return TREE without ignored entries, up to DEPTH."
+(cl-defun org-make-toc--remove-ignored-entries (tree &key depth keep-all)
+  "Return TREE without ignored entries, up to DEPTH.
+When KEEP-ALL is non-nil, return all entries."
   (cl-loop when (and depth
                      (< depth 0))
            return nil
@@ -133,40 +185,50 @@
            for properties = (second element)
            for children = (cddr element)
            when (eql 'headline type)
-           for result = (pcase (org-element-property :TOC element)
-                          ;; Ignore this entry and its children
-                          ("ignore"
-                           nil)
-                          ;; Keep this entry but ignore its children
-                          ((or "ignore-children" "0")
-                           (list type properties))
-                          ;; Normal entry: descend into tree
-                          ((or (pred not) "")
-                           (list type
-                                 properties
-                                 (org-make-toc--remove-ignored-entries children
-                                                                       :depth (when depth
-                                                                                (1- depth)))))
-                          ;; TOC entry; descend into but leave this entry blank so it won't be in the TOC
-                          ("this"
-                           (list type
-                                 (plist-put properties :title nil)
-                                 (org-make-toc--remove-ignored-entries children
-                                                                       :depth (when depth
-                                                                                (1- depth)))))
-                          ;; Depth setting
-                          ((and number (guard (string-to-number number)))
-                           (list type
-                                 properties
-                                 (org-make-toc--remove-ignored-entries children
-                                                                       :depth (or (when depth
-                                                                                    (1- depth))
-                                                                                  (1- (string-to-number number))))))
-                          ;; Invalid setting
-                          (other
-                           (goto-char (org-element-property :begin element))
-                           (user-error "Invalid value for TOC property at entry \"%s\": %s"
-                                       (org-element-property :title element) other)))
+           for result = (if keep-all
+                            (list type
+                                  properties
+                                  (org-make-toc--remove-ignored-entries children
+                                                                        :depth (when depth
+                                                                                 (1- depth))
+                                                                        :keep-all keep-all))
+                          (pcase (org-element-property :TOC element)
+                            ;; Ignore this entry and its children
+                            ("ignore"
+                             nil)
+                            ;; Keep this entry but ignore its children
+                            ((or "ignore-children" "0")
+                             (list type properties))
+                            ;; Normal entry: descend into tree
+                            ((or (pred not) "")
+                             (list type
+                                   properties
+                                   (org-make-toc--remove-ignored-entries children
+                                                                         :depth (when depth
+                                                                                  (1- depth))
+                                                                         :keep-all keep-all)))
+                            ;; TOC entry; descend into but leave this entry blank so it won't be in the TOC
+                            ((or "this" "children" "siblings")
+                             (list type
+                                   (plist-put properties :title nil)
+                                   (org-make-toc--remove-ignored-entries children
+                                                                         :depth (when depth
+                                                                                  (1- depth))
+                                                                         :keep-all keep-all)))
+                            ;; Depth setting
+                            ((and number (guard (string-to-number number)))
+                             (list type
+                                   properties
+                                   (org-make-toc--remove-ignored-entries children
+                                                                         :depth (or (when depth
+                                                                                      (1- depth))
+                                                                                    (1- (string-to-number number)))
+                                                                         :keep-all keep-all)))
+                            ;; Invalid setting
+                            (other
+                             (goto-char (org-element-property :begin element))
+                             (user-error "Invalid value for TOC property at entry \"%s\": %s"
+                                         (org-element-property :title element) other))))
            when result
            collect result))
 
@@ -243,6 +305,23 @@
       (org-end-of-meta-data)
       (beginning-of-line)
       (setf (buffer-substring (point) end) contents))))
+
+;;;; Mode
+
+(define-minor-mode org-make-toc-mode
+  "Add the `org-make-toc' command to the `before-save-hook' in the current Org buffer.
+With prefix argument ARG, turn on if positive, otherwise off."
+  :init-value nil
+  (unless (derived-mode-p 'org-mode)
+    (user-error "Not an Org buffer"))
+  (funcall (if org-make-toc-mode #'add-hook #'remove-hook)
+           'before-save-hook #'org-make-toc)
+  (message (format "org-make-toc-mode %s."
+                   (if org-make-toc-mode
+                       "enabled"
+                     "disabled"))))
+
+;;;; Footer
 
 (provide 'org-make-toc)
 

@@ -1,0 +1,125 @@
+* Document top-level heading
+
+This is an example of a complex document.  To see the Org syntax, view the [[https://raw.githubusercontent.com/alphapapa/org-make-toc/master/example.org][raw version]] of this file.
+
+** Main ToC 
+:PROPERTIES:
+:TOC:      this
+:END:
+  -  [[#document-top-level-heading][Document top-level heading]]
+    -  [[#chapter-1][Chapter 1]]
+        -  [[#section-1a][Section 1a]]
+          -  [[#subsection-1a1][Subsection 1a1]]
+    -  [[#chapter-2][Chapter 2]]
+      -  [[#section-2a][Section 2a]]
+        -  [[#subsection-2a1][Subsection 2a1]]
+      -  [[#section-2b][Section 2b]]
+    -  [[#appendices][Appendices]]
+      -  [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
+      -  [[#appendix-b][Appendix B]]
+      -  [[#appendix-c][Appendix C]]
+    -  [[#footer][Footer]]
+
+** Chapter 1
+
+This chapter has sections as children of the chapter's TOC.
+
+*** Chapter 1 TOC 
+:PROPERTIES:
+:TOC:      children 
+:END:
+        -  [[#section-1a][Section 1a]]
+          -  [[#subsection-1a1][Subsection 1a1]]
+
+**** Section 1a
+
+This section is included in the chapter's TOC.
+
+***** Subsection 1a1
+
+**** Section 1b  
+:PROPERTIES:
+:TOC:      ignore
+:END:
+
+This section is not.
+
+***** Subsection 1b1
+
+** Chapter 2
+
+This chapter has sections as siblings of the chapter's TOC.
+
+*** Chapter 2 TOC
+:PROPERTIES:
+:TOC:    siblings
+:END:
+      -  [[#section-2a][Section 2a]]
+        -  [[#subsection-2a1][Subsection 2a1]]
+      -  [[#section-2b][Section 2b]]
+
+*** Section 2a
+
+**** Subsection 2a1
+
+*** Section 2b
+:PROPERTIES:
+:TOC:      0
+:END:
+
+This section is included in the TOC.
+
+**** Subsection 2b1
+
+But its subsection is not.
+
+** Appendices
+
+The appendices have a local TOC, and one of them is a comprehensive TOC of the entire document (unlike the main TOC at the top of the document, which is abridged).
+
+*** Appendices TOC
+:PROPERTIES:
+:TOC:      siblings
+:END:
+      -  [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
+      -  [[#appendix-b][Appendix B]]
+      -  [[#appendix-c][Appendix C]]
+
+*** Appendix A: Comprehensive TOC
+:PROPERTIES:
+:TOC:      all
+:END:
+  -  [[#document-top-level-heading][Document top-level heading]]
+    -  [[#main-toc][Main ToC]]
+    -  [[#chapter-1][Chapter 1]]
+      -  [[#chapter-1-toc][Chapter 1 TOC]]
+        -  [[#section-1a][Section 1a]]
+          -  [[#subsection-1a1][Subsection 1a1]]
+        -  [[#section-1b][Section 1b]]
+          -  [[#subsection-1b1][Subsection 1b1]]
+    -  [[#chapter-2][Chapter 2]]
+      -  [[#chapter-2-toc][Chapter 2 TOC]]
+      -  [[#section-2a][Section 2a]]
+        -  [[#subsection-2a1][Subsection 2a1]]
+      -  [[#section-2b][Section 2b]]
+        -  [[#subsection-2b1][Subsection 2b1]]
+    -  [[#appendices][Appendices]]
+      -  [[#appendices-toc][Appendices TOC]]
+      -  [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
+      -  [[#appendix-b][Appendix B]]
+      -  [[#appendix-c][Appendix C]]
+    -  [[#footer][Footer]]
+
+*** Appendix B
+
+Possibly vestigial.
+
+*** Appendix C
+
+Definitely vestigial.
+
+** Footer
+
+# Local Variables:
+# before-save-hook: org-make-toc
+# End: 
