@@ -62,7 +62,7 @@ A document may contain multiple tables of contents.  Tables of contents can be c
 +  =siblings=: Include only sibling headings of this ToC.
 +  =ignore=: Omit a heading from the TOC.
 +  =ignore-children= or =0=: Omit a heading's child headings from the TOC.
-+  a number =N=: Include child headings no more than =N= levels deep in the TOC.
++  a number =N=: Include child headings up to =N= levels deep in the TOC.
 
 ** Automatically update on save
 
