@@ -4,7 +4,7 @@
 
 ;; Author: Adam Porter <adam@alphapapa.net>
 ;; URL: http://github.com/alphapapa/org-make-toc
-;; Version: 0.2
+;; Version: 0.3-pre
 ;; Package-Requires: ((emacs "25.1") (dash "2.12") (s "1.10.0") (org "9.0"))
 ;; Keywords: Org, convenience
 
@@ -88,44 +88,48 @@
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (let (toc-position type made-toc)
-      (cl-loop while (and (setq toc-position (org-make-toc--find-next-property "TOC"))
-                          (setq type (org-entry-get toc-position "TOC")))
-               when (member type '("this" "all" "siblings" "children"))
-               do (progn
-                    (goto-char toc-position)
-                    (save-excursion
-                      (save-restriction
-                        (pcase type
-                          ;; Widen or narrow as necessary
-                          ((or "this" "all") (widen))
-                          ("siblings" (progn
-                                        (ignore-errors
-                                          (outline-up-heading 1))
-                                        (narrow-to-region (save-excursion
-                                                            (forward-line 1)
-                                                            (point))
-                                                          (save-excursion
-                                                            (org-end-of-subtree)
-                                                            (point)))))
-                          ("children" (org-narrow-to-subtree)))
-                        (org-make-toc--replace-entry-contents
-                         toc-position
-                         (or (--> (cddr (org-element-parse-buffer 'headline))
-                                  (org-make-toc--remove-ignored-entries it :keep-all (string= type "all"))
-                                  ;;  (org-make-toc--remove-higher-level-than-toc)
-                                  (org-make-toc--tree-to-list it))
-                             (error "Failed to build table of contents")))))
-                    (setq made-toc t))
-               do (or (outline-next-heading)
-                      (goto-char (point-max)))
-               finally do (unless made-toc
-                            (let ((message "No TOC node found.  A node must have the \"TOC\" property set to \"this\", \"all\", \"siblings\", or \"children\"."))
-                              (if (called-interactively-p 'interactive)
-                                  (message message)
-                                (user-error message))))))))
+    (cl-loop with made-toc
+             for position = (org-make-toc--find-next-property "TOC")
+             while position
+             for string = (org-make-toc--toc-at position)
+             do (progn
+                  (when string
+                    (setq made-toc t)
+                    (org-make-toc--replace-entry-contents position string))
+                  (or (outline-next-heading)
+                      (goto-char (point-max))))
+             finally do (unless made-toc
+                          (let ((message "No TOC node found.  A node must have the \"TOC\" property set to \"this\", \"all\", \"siblings\", or \"children\"."))
+                            (if (called-interactively-p 'interactive)
+                                (message message)
+                              (user-error message)))))))
 
 ;;;; Functions
+
+(defun org-make-toc--toc-at (position)
+  "Return table of contents as string for entry at POSITION."
+  (save-excursion
+    (save-restriction
+      (let ((type (org-entry-get position "TOC")))
+        (when (member type '("this" "all" "siblings" "children"))
+          (goto-char position)
+          (pcase type
+            ;; Widen or narrow as necessary
+            ((or "this" "all") (widen))
+            ("siblings" (progn
+                          (ignore-errors
+                            (outline-up-heading 1))
+                          (narrow-to-region (save-excursion
+                                              (forward-line 1)
+                                              (point))
+                                            (save-excursion
+                                              (org-end-of-subtree)
+                                              (point)))))
+            ("children" (org-narrow-to-subtree)))
+          (or (--> (cddr (org-element-parse-buffer 'headline))
+                   (org-make-toc--remove-ignored-entries it :keep-all (string= type "all"))
+                   (org-make-toc--tree-to-list it))
+              (error "Failed to build table of contents at position: %s" position)))))))
 
 (defun org-make-toc--find-next-property (property &optional value)
   "Return position of next entry in buffer that has PROPERTY, or nil if none is found.
