@@ -85,6 +85,9 @@ See [[https://github.com/alphapapa/org-make-toc/blob/master/example.org][example
 
 ** 0.3-pre
 
+*Additions*
++  Option ~org-make-toc-filename-prefix~ to add the filename before the anchor in links.  This allows a ToC to refer to entries in another file by manually copying a ToC from one file into another.  See [[https://github.com/alphapapa/org-make-toc/pull/2][issue 2]].  Thanks to [[https://github.com/dakra][Daniel Kraus]].
+
 *Changes*
 +  Minor refactoring.
 

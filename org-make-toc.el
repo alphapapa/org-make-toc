@@ -80,6 +80,11 @@
   :group 'org
   :link '(url-link "http://github.com/alphapapa/org-make-toc"))
 
+(defcustom org-make-toc-filename-prefix nil
+  "Prefix links with filename before anchor tag."
+  :type 'boolean
+  :safe #'booleanp)
+
 ;;;; Commands
 
 ;;;###autoload
@@ -285,8 +290,11 @@ When KEEP-ALL is non-nil, return all entries."
   (-when-let* ((title (org-element-property :title entry))
                (title (org-link-display-format title))
                (target (replace-regexp-in-string " " "-" (downcase title)))
-               (target (replace-regexp-in-string "[^[:alnum:]_-]" "" target)))
-    (format "[[#%s][%s]]" target title)))
+               (target (replace-regexp-in-string "[^[:alnum:]_-]" "" target))
+               (filename (if org-make-toc-filename-prefix
+                             (file-name-nondirectory (buffer-file-name))
+                           "")))
+    (format "[[%s#%s][%s]]" filename target title)))
 
 ;;;;; Misc
 
