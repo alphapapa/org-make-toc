@@ -106,30 +106,74 @@
 
 ;;;; Functions
 
+(defun org-make-toc--file-toc (buffer-or-file)
+  "Return table of contents as string for FILE."
+  (let* ((kill-buffer)
+         (buffer (cl-typecase buffer-or-file
+                   (buffer buffer-or-file)
+                   (string (or (find-buffer-visiting buffer-or-file)
+                               (when-let ((buffer (find-file-noselect buffer-or-file)))
+                                 (setq kill-buffer t)
+                                 buffer)
+                               (error "Can't find file: %s" buffer-or-file))))))
+    (with-current-buffer buffer)
+    (save-excursion
+      (goto-char (point-min))
+      (cl-loop with made-toc
+               for position = (org-make-toc--find-next-property "TOC")
+               while position
+               for string = (org-make-toc--toc-at position)
+               do (progn
+                    (when string
+                      (setq made-toc t)
+                      (org-make-toc--replace-entry-contents position string))
+                    (or (outline-next-heading)
+                        (goto-char (point-max))))
+               finally do (unless made-toc
+                            (let ((message "No TOC node found.  A node must have the \"TOC\" property set to \"this\", \"all\", \"siblings\", or \"children\"."))
+                              (if (called-interactively-p 'interactive)
+                                  (message message)
+                                (user-error message))))))))
+
 (defun org-make-toc--toc-at (position)
   "Return table of contents as string for entry at POSITION."
   (save-excursion
     (save-restriction
-      (let ((type (org-entry-get position "TOC")))
-        (when (member type '("this" "all" "siblings" "children"))
-          (goto-char position)
-          (pcase type
-            ;; Widen or narrow as necessary
-            ((or "this" "all") (widen))
-            ("siblings" (progn
-                          (ignore-errors
-                            (outline-up-heading 1))
-                          (narrow-to-region (save-excursion
-                                              (forward-line 1)
-                                              (point))
-                                            (save-excursion
-                                              (org-end-of-subtree)
-                                              (point)))))
-            ("children" (org-narrow-to-subtree)))
-          (or (--> (cddr (org-element-parse-buffer 'headline))
-                   (org-make-toc--remove-ignored-entries it :keep-all (string= type "all"))
-                   (org-make-toc--tree-to-list it))
-              (error "Failed to build table of contents at position: %s" position)))))))
+      (let ((type (org-entry-get position "TOC"))
+            file kill-buffer)
+        (when (or (member type '("this" "all" "siblings" "children"))
+                  ;; Multiple values (currently only for other files)
+                  (--some (when (string-prefix-p "file:" it)
+                            (setq file (s-chop-prefix "file:" it)
+                                  ;; NOTE: Only one "file:" should be specified.
+                                  type (--remove (string-prefix-p "file:" it)
+                                                 type)))
+                          (split-string type)))
+          (with-current-buffer (if file
+                                   (or (find-buffer-visiting file)
+                                       (when-let ((buffer (find-file-noselect file)))
+                                         (setq kill-buffer t)
+                                         buffer)
+                                       (error "Can't find file: %s" file))
+                                 (current-buffer))
+            (goto-char position)
+            (pcase type
+              ;; Widen or narrow as necessary
+              ((or "this" "all") (widen))
+              ("siblings" (progn
+                            (ignore-errors
+                              (outline-up-heading 1))
+                            (narrow-to-region (save-excursion
+                                                (forward-line 1)
+                                                (point))
+                                              (save-excursion
+                                                (org-end-of-subtree)
+                                                (point)))))
+              ("children" (org-narrow-to-subtree)))
+            (or (--> (cddr (org-element-parse-buffer 'headline))
+                     (org-make-toc--remove-ignored-entries it :keep-all (string= type "all"))
+                     (org-make-toc--tree-to-list it))
+                (error "Failed to build table of contents at position: %s" position))))))))
 
 (defun org-make-toc--find-next-property (property &optional value)
   "Return position of next entry in buffer that has PROPERTY, or nil if none is found.
