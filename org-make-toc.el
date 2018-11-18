@@ -4,7 +4,7 @@
 
 ;; Author: Adam Porter <adam@alphapapa.net>
 ;; URL: http://github.com/alphapapa/org-make-toc
-;; Version: 0.3
+;; Version: 0.4-pre
 ;; Package-Requires: ((emacs "25.1") (dash "2.12") (s "1.10.0") (org "9.0"))
 ;; Keywords: Org, convenience
 
@@ -288,13 +288,15 @@ When KEEP-ALL is non-nil, return all entries."
 (defun org-make-toc--link-entry-github (entry)
   "Return text for ENTRY converted to GitHub style link."
   (-when-let* ((title (org-element-property :title entry))
-               (title (org-link-display-format title))
-               (target (replace-regexp-in-string " " "-" (downcase title)))
-               (target (replace-regexp-in-string "[^[:alnum:]_-]" "" target))
+               (target (--> title
+                            (downcase it)
+                            (replace-regexp-in-string " " "-" it)
+                            (replace-regexp-in-string "[^[:alnum:]_-]" "" it)))
                (filename (if org-make-toc-filename-prefix
                              (file-name-nondirectory (buffer-file-name))
                            "")))
-    (format "[[%s#%s][%s]]" filename target title)))
+    (org-make-link-string (concat "#" filename target)
+                          (org-make-toc--visible-text title))))
 
 ;;;;; Misc
 
@@ -317,6 +319,57 @@ When KEEP-ALL is non-nil, return all entries."
       (org-end-of-meta-data)
       (beginning-of-line)
       (setf (buffer-substring (point) end) contents))))
+
+(defun org-make-toc--visible-text (string)
+  "Return only visible text in STRING after fontifying it like in Org-mode.
+
+`org-fontify-like-in-org-mode' is a very, very slow function
+because it creates a new temporary buffer and runs `org-mode' for
+every string it fontifies.  This function reuses a single
+invisible buffer and only runs `org-mode' when the buffer is
+created."
+  (let ((buffer (get-buffer " *org-make-toc-fontification*")))
+    (unless buffer
+      (setq buffer (get-buffer-create " *org-make-toc-fontification*"))
+      (with-current-buffer buffer
+        (buffer-disable-undo)
+        (org-mode)
+        (setq-local org-hide-emphasis-markers t)))
+    (with-current-buffer buffer
+      (insert string)
+      ;; FIXME: "Warning: ‘font-lock-fontify-buffer’ is for interactive use only; use
+      ;; ‘font-lock-ensure’ or ‘font-lock-flush’ instead."
+      (font-lock-fontify-buffer)
+      ;; This is more complicated than I would like, but the `org-find-invisible' and
+      ;; `org-find-visible' functions don't seem to be appropriate to this task, so this works.
+      (prog1
+          (cl-flet ((visible-p () (not (get-char-property (point) 'invisible)))
+                    (invisible-p () (get-char-property (point) 'invisible))
+                    (forward-until (until)
+                                   (forward-char 1)
+                                   (cl-loop until (or (eobp)
+                                                      (funcall until))
+                                            do (goto-char (next-overlay-change (point))))
+                                   (point))
+                    (backward-until (until)
+                                    (backward-char 1)
+                                    (cl-loop until (or (eobp)
+                                                       (funcall until))
+                                             do (goto-char (previous-overlay-change (point))))
+                                    (point)))
+            (goto-char (point-min))
+            (unless (visible-p)
+              (forward-until #'visible-p))
+            (setq string (cl-loop concat (buffer-substring (point) (forward-until #'invisible-p))
+                                  until (eobp)
+                                  do (forward-until #'visible-p)))
+            (when (progn
+                    (backward-char 1)
+                    (invisible-p))
+              ;; Remove trailing invisible chars.
+              (setq string (substring string 0 (- (point) (backward-until #'invisible-p) 1))))
+            string)
+        (erase-buffer)))))
 
 ;;;; Mode
 
