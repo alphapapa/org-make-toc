@@ -10,16 +10,16 @@
 
 ;;; Commentary:
 
-;; This package makes it easy to have one or more customizable tables of contents in Org files that can be
-;; updated manually, or automatically when the file is saved.  Links to headings are created
-;; compatible with GitHub's Org renderer.
+;; This package makes it easy to have one or more customizable tables of contents in Org files.
+;; They can be updated manually, or automatically when the file is saved.  Links to headings are
+;; created compatible with GitHub's Org renderer.
 
 ;;;; Installation
 
 ;; Install the packages `dash' and `s'.  Then put this file in your `load-path', and put this in
 ;; your init file:
 
-;; (require 'org-make-toc)
+;;   (require 'org-make-toc)
 
 ;;;; Usage
 
