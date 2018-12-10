@@ -346,29 +346,23 @@ created."
           (cl-flet ((visible-p () (not (get-char-property (point) 'invisible)))
                     (invisible-p () (get-char-property (point) 'invisible))
                     (forward-until (until)
-                                   (forward-char 1)
-                                   (cl-loop until (or (eobp)
-                                                      (funcall until))
-                                            do (goto-char (next-overlay-change (point))))
+                                   (cl-loop until (or (eobp) (funcall until))
+                                            for pos = (next-single-property-change (point) 'invisible nil (point-max))
+                                            while pos
+                                            do (goto-char pos))
                                    (point))
                     (backward-until (until)
-                                    (backward-char 1)
-                                    (cl-loop until (or (eobp)
-                                                       (funcall until))
-                                             do (goto-char (previous-overlay-change (point))))
+                                    (cl-loop until (or (eobp) (funcall until))
+                                             for pos = (previous-single-property-change (point) 'invisible nil (point-max))
+                                             while pos
+                                             do (goto-char pos))
                                     (point)))
             (goto-char (point-min))
             (unless (visible-p)
               (forward-until #'visible-p))
             (setq string (cl-loop concat (buffer-substring (point) (forward-until #'invisible-p))
                                   until (eobp)
-                                  do (forward-until #'visible-p)))
-            (when (progn
-                    (backward-char 1)
-                    (invisible-p))
-              ;; Remove trailing invisible chars.
-              (setq string (substring string 0 (- (point) (backward-until #'invisible-p) 1))))
-            string)
+                                  do (forward-until #'visible-p))))
         (erase-buffer)))))
 
 ;;;; Mode
