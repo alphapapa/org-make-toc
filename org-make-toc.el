@@ -328,6 +328,7 @@ because it creates a new temporary buffer and runs `org-mode' for
 every string it fontifies.  This function reuses a single
 invisible buffer and only runs `org-mode' when the buffer is
 created."
+  ;; MAYBE: Use `org-sort-remove-invisible' instead?  Not sure if it does exactly the same thing.
   (let ((buffer (get-buffer " *org-make-toc-fontification*")))
     (unless buffer
       (setq buffer (get-buffer-create " *org-make-toc-fontification*"))
