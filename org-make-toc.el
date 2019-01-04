@@ -85,6 +85,15 @@
   :type 'boolean
   :safe #'booleanp)
 
+(defcustom org-make-toc-link-type-fn #'org-make-toc--link-entry-github
+  "Type of links to make.
+`org-element' entries are passed to this function, which returns
+an Org link as a string, the target of which should be compatible
+with the destination of the published file."
+  :type '(choice (const :tag "GitHub-compatible" org-make-toc--link-entry-github)
+                 (const :tag "Org-compatible" org-make-toc--link-entry-org)
+                 (function :tag "Custom function")))
+
 ;;;; Commands
 
 ;;;###autoload
@@ -267,7 +276,7 @@ When KEEP-ALL is non-nil, return all entries."
                                     for level = (or (org-element-property :level element) 0)
                                     for indent = (s-repeat (* 2 level) " ")
                                     for children = (org-make-toc--tree-to-list (caddr element))
-                                    for link = (org-make-toc--link-entry-github element)
+                                    for link = (funcall org-make-toc-link-type-fn element)
                                     collect (concat indent "-" "  " link "\n" children)))))
     (with-temp-buffer
       (insert contents)
@@ -296,6 +305,16 @@ When KEEP-ALL is non-nil, return all entries."
                              (file-name-nondirectory (buffer-file-name))
                            "")))
     (org-make-link-string (concat "#" filename target)
+                          (org-make-toc--visible-text title))))
+
+(defun org-make-toc--link-entry-org (entry)
+  "Return text for ENTRY converted to regular Org link."
+  ;; FIXME: There must be a built-in function to do this, although it might be in `org-export'.
+  (-when-let* ((title (org-element-property :title entry))
+               (filename (if org-make-toc-filename-prefix
+                             (concat "file:" (file-name-nondirectory (buffer-file-name)) "::")
+                           "")))
+    (org-make-link-string (concat filename title)
                           (org-make-toc--visible-text title))))
 
 ;;;;; Misc
