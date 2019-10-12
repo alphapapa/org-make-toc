@@ -89,6 +89,11 @@ See [[https://github.com/alphapapa/org-make-toc/blob/master/example.org][example
 +  Omit invisible characters from link titles (e.g. Org markup characters like ~=~ and =~=).
 +  Option ~org-make-toc-link-type-fn~ allows choosing GitHub-compatible or regular Org-style links.
 
+** 0.3.1
+
+*Fixes*
++  Use =cadr= instead of =second=.
+
 ** 0.3
 
 *Additions*
