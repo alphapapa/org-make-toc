@@ -83,6 +83,11 @@ See [[https://github.com/alphapapa/org-make-toc/blob/master/example.org][example
 :TOC:      0
 :END:
 
+** 0.3.1
+
+*Fixes*
++  Use =cadr= instead of =second=.
+
 ** 0.3
 
 *Additions*
