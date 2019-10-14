@@ -113,10 +113,7 @@ with the destination of the published file."
                   (or (outline-next-heading)
                       (goto-char (point-max))))
              finally do (unless made-toc
-                          (let ((message "No TOC node found.  A node must have the \"TOC\" property set to \"this\", \"all\", \"siblings\", or \"children\"."))
-                            (if (called-interactively-p 'interactive)
-                                (message message)
-                              (user-error message)))))))
+                          (message "org-make-toc: No TOC node found.")))))
 
 ;;;; Functions
 
