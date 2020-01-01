@@ -88,9 +88,14 @@ See [[https://github.com/alphapapa/org-make-toc/blob/master/example.org][example
 *Additions*
 +  Omit invisible characters from link titles (e.g. Org markup characters like ~=~ and =~=).
 +  Option ~org-make-toc-link-type-fn~ allows choosing GitHub-compatible or regular Org-style links.
++  Command =org-make-toc-at-point=, which updates the TOC at the current entry.
 
 *Changes*
 +  Changed no-TOC-node-found error to a message, so e.g. when =org-make-toc-mode= is active in a buffer without a TOC, saving will not signal an error.
+
+*Fixes*
++  Remove excess indentation from TOC while preserving list structure.
++  Don't insert a blank line when TOC is empty.
 
 ** 0.3.1
 

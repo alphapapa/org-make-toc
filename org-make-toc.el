@@ -105,17 +105,29 @@ with the destination of the published file."
     (cl-loop with made-toc
              for position = (org-make-toc--find-next-property "TOC")
              while position
-             for string = (org-make-toc--toc-at position)
              do (progn
-                  (when string
-                    (setq made-toc t)
-                    (org-make-toc--replace-entry-contents position string))
+                  (goto-char position)
+                  (when (org-make-toc--update-toc-at-point)
+                    (setq made-toc t))
                   (or (outline-next-heading)
                       (goto-char (point-max))))
              finally do (unless made-toc
                           (message "org-make-toc: No TOC node found.")))))
 
+(defun org-make-toc-at-point ()
+  "Make or update table of contents at current entry."
+  (interactive)
+  (unless (org-make-toc--update-toc-at-point)
+    (user-error "No TOC node found")))
+
 ;;;; Functions
+
+(defun org-make-toc--update-toc-at-point ()
+  "Make or update table of contents at current entry."
+  (when-let* ((toc-string (org-make-toc--toc-at (point))))
+    (setq toc-string (org-make-toc--remove-excess-indentation toc-string))
+    (org-make-toc--replace-entry-contents (point) toc-string)
+    t))
 
 (defun org-make-toc--toc-at (position)
   "Return table of contents as string for entry at POSITION."
@@ -286,10 +298,33 @@ When KEEP-ALL is non-nil, return all entries."
                             "-"
                             (optional (1+ space)))
                        eol))
-      ;; Insert blank line after list
-      (goto-char (point-max))
-      (insert "\n")
-      (buffer-string))))
+      (if (= (buffer-size) 0)
+          ;; Empty buffer.
+          ""
+        ;; Insert blank line after list.
+        (goto-char (point-max))
+        (insert "\n")
+        ;; Remove excess indentation.
+        (buffer-string)))))
+
+(defun org-make-toc--remove-excess-indentation (s)
+  "Remove excess indentation in string S.
+Preserves indentation of each line relative to the others."
+  (with-temp-buffer
+    (insert s)
+    (let* ((excess (progn
+                     (goto-char (point-min))
+                     (cl-loop while (re-search-forward (rx bol (1+ blank)) nil t)
+                              minimize (length (match-string 0))
+                              do (forward-line 1)
+                              until (eobp)))))
+      (when (and excess (> excess 0))
+        (goto-char (point-min))
+        (while (re-search-forward (rx-to-string `(seq bol (repeat 1 ,excess blank)) t)
+                                  nil t)
+          (replace-match "")
+          (forward-line 1))))
+    (buffer-string)))
 
 (defun org-make-toc--link-entry-github (entry)
   "Return text for ENTRY converted to GitHub style link."
