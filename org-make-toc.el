@@ -442,6 +442,7 @@ created."
 
 ;;;; Mode
 
+;;;###autoload
 (define-minor-mode org-make-toc-mode
   "Add the `org-make-toc' command to the `before-save-hook' in the current Org buffer.
 With prefix argument ARG, turn on if positive, otherwise off."
