@@ -139,15 +139,17 @@ with the destination of the published file."
           (pcase type
             ;; Widen or narrow as necessary
             ((or "this" "all") (widen))
-            ("siblings" (progn
-                          (ignore-errors
-                            (outline-up-heading 1))
-                          (narrow-to-region (save-excursion
-                                              (forward-line 1)
-                                              (point))
-                                            (save-excursion
-                                              (org-end-of-subtree)
-                                              (point)))))
+            ("siblings" (if (ignore-errors
+                              (outline-up-heading 1))
+                            ;; Subtree: narrow to it.
+                            (narrow-to-region (save-excursion
+                                                (forward-line 1)
+                                                (point))
+                                              (save-excursion
+                                                (org-end-of-subtree)
+                                                (point)))
+                          ;; Top-level heading: widen.
+                          (widen)))
             ("children" (org-narrow-to-subtree)))
           (or (--> (cddr (org-element-parse-buffer 'headline))
                    (org-make-toc--remove-ignored-entries it :keep-all (string= type "all"))
@@ -362,14 +364,35 @@ Preserves indentation of each line relative to the others."
   (org-element-property :level element))
 
 (defun org-make-toc--replace-entry-contents (pos contents)
-  "Replace the contents of entry at POS with CONTENTS."
+  "Replace the contents of entry at POS with CONTENTS.
+If entry has a \":CONTENTS:\" drawer, replace its contents
+instead of the whole entry."
   (save-excursion
     (goto-char pos)
-    (forward-line 1)
-    (let ((end (org-entry-end-position)))
-      (org-end-of-meta-data)
-      (beginning-of-line)
-      (setf (buffer-substring (point) end) contents))))
+    (org-back-to-heading)
+    (let* ((end (org-entry-end-position))
+           contents-beg contents-end)
+      (if (and (re-search-forward (rx bol ":CONTENTS:" (0+ blank) eol) end t)
+               (org-at-drawer-p))
+          ;; :CONTENTS: drawer found: replace its contents.
+          (progn
+            ;; Set the end first, then search back and skip any ":TOC:" property line in the drawer.
+            (setf contents-end (save-excursion
+                                 (when (re-search-forward (rx bol ":END:" (0+ blank) eol) end)
+                                   (match-beginning 0)))
+                  contents-beg (progn
+                                 (when (save-excursion
+                                         (forward-line 1)
+                                         (looking-at-p (rx bol ":TOC:" (0+ blank) (group (1+ nonl)))))
+                                   (forward-line 1))
+                                 (point-at-eol))
+                  contents (concat "\n" (string-trim contents) "\n")))
+        ;; No drawer found: replace whole entry.
+        (setf contents-beg (progn
+                             (org-end-of-meta-data)
+                             (point-at-bol))
+              contents-end end))
+      (setf (buffer-substring contents-beg contents-end) contents))))
 
 (defun org-make-toc--visible-text (string)
   "Return only visible text in STRING after fontifying it like in Org-mode.

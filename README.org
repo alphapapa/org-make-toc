@@ -53,6 +53,25 @@ If you installed from MELPA, you're done.
 1.  Make a heading in the Org file where you want the table of contents, and give it the Org property =TOC= with the value =this=.
 2.  Run the command =org-make-toc= to update all TOCs in the document, or =org-make-toc-at-point= to update the TOC for the entry at point.
 
+** Drawers
+
+When using =:TOC: this=, the TOC replaces the entry's contents.  Alternatively, when a =:CONTENTS:= drawer is present in the entry, the TOC will be placed in the drawer, which co-exists with the entry's text, like this:
+
+#+BEGIN_SRC org
+  ,* Heading
+  :PROPERTIES:
+  :TOC:      this
+  :END:
+
+  :CONTENTS:
+  -  [[#subheading][Subheading]]
+  :END:
+
+  This is non-TOC text that remains in the entry.
+
+  ,** Subheading
+#+END_SRC
+
 ** Advanced
 
 A document may contain multiple tables of contents.  Tables of contents can be customized by setting the =TOC= property of headings to these values:
@@ -89,6 +108,7 @@ See [[https://github.com/alphapapa/org-make-toc/blob/master/example.org][example
 +  Omit invisible characters from link titles (e.g. Org markup characters like ~=~ and =~=).
 +  Option ~org-make-toc-link-type-fn~ allows choosing GitHub-compatible or regular Org-style links.
 +  Command =org-make-toc-at-point=, which updates the TOC at the current entry.
++  Optionally place TOC in a =:CONTENTS:= drawer which co-exists with entry content.
 
 *Changes*
 +  Changed no-TOC-node-found error to a message, so e.g. when =org-make-toc-mode= is active in a buffer without a TOC, saving will not signal an error.
