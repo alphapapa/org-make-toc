@@ -117,6 +117,7 @@ See [[https://github.com/alphapapa/org-make-toc/blob/master/example.org][example
 +  Remove excess indentation from TOC while preserving list structure.
 +  Don't insert a blank line when TOC is empty.
 +  Autoload minor mode.  (Thanks to [[https://github.com/akirak][Akira Komamura]].)
++  Filename prefix order in links.  (Thanks to [[https://github.com/dakra][Daniel Kraus]].)
 
 ** 0.3.1
 

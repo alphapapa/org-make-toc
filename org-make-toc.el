@@ -338,7 +338,7 @@ Preserves indentation of each line relative to the others."
                (filename (if org-make-toc-filename-prefix
                              (file-name-nondirectory (buffer-file-name))
                            "")))
-    (org-make-link-string (concat "#" filename target)
+    (org-make-link-string (concat filename "#" target)
                           (org-make-toc--visible-text title))))
 
 (defun org-make-toc--link-entry-org (entry)
