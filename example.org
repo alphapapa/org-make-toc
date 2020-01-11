@@ -4,45 +4,53 @@
 
 This is an example of a complex document.  To see the Org syntax, view the [[https://raw.githubusercontent.com/alphapapa/org-make-toc/master/example.org][raw version]] of this file.
 
-** Main ToC 
+** Main ToC: Itself excluded
 :PROPERTIES:
 :TOC:      :include all :ignore this
 :END:
+
+This heading itself is excluded from its TOC.
+
 :CONTENTS:
 - [[#document-top-level-heading][Document top-level heading]]
-  - [[#chapter-1][Chapter 1]]
+  - [[#chapter-1-inline-toc][Chapter 1: Inline TOC]]
     - [[#section-1a][Section 1a]]
       - [[#subsection-1a1][Subsection 1a1]]
-      - [[#subsection-1b1][Subsection 1b1]]
-  - [[#chapter-2][Chapter 2]]
+      - [[#subsection-1b1-included-despite-its-excluded-parent][Subsection 1b1: Included, despite its excluded parent]]
+  - [[#chapter-2-toc-as-sibling][Chapter 2: TOC as sibling]]
+    - [[#chapter-2-toc][Chapter 2 TOC]]
     - [[#section-2a][Section 2a]]
       - [[#subsection-2a1][Subsection 2a1]]
-    - [[#section-2b][Section 2b]]
-      - [[#subsection-2b1][Subsection 2b1]]
-  - [[#chapter-3][Chapter 3]]
-    - [[#section-3a][Section 3a]]
-      - [[#subsection-3a1][Subsection 3a1]]
-    - [[#section-3b][Section 3b]]
-      - [[#subsection-3b1][Subsection 3b1]]
+    - [[#section-2b-child-is-excluded][Section 2b: Child is excluded]]
+  - [[#chapter-3-toc-as-parent][Chapter 3: TOC as parent]]
+    - [[#chapter-3-toc][Chapter 3 TOC]]
+      - [[#section-3a][Section 3a]]
+        - [[#subsection-3a1][Subsection 3a1]]
+      - [[#section-3b][Section 3b]]
+        - [[#subsection-3b1][Subsection 3b1]]
+  - [[#chapter-4-limited-depth][Chapter 4: Limited depth]]
+    - [[#section-4a][Section 4a]]
+    - [[#section-4b][Section 4b]]
   - [[#appendices][Appendices]]
     - [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
     - [[#appendix-b][Appendix B]]
     - [[#appendix-c][Appendix C]]
-  - [[#footer][Footer]]
 :END:
 
-** Chapter 1
+** Chapter 1: Inline TOC
 :PROPERTIES:
 :TOC:       :include descendants
 :END:
 
-This chapter includes its TOC inline.
+This chapter includes its TOC inline, with text before...
 
 :CONTENTS:
 - [[#section-1a][Section 1a]]
   - [[#subsection-1a1][Subsection 1a1]]
-  - [[#subsection-1b1][Subsection 1b1]]
+  - [[#subsection-1b1-included-despite-its-excluded-parent][Subsection 1b1: Included, despite its excluded parent]]
 :END:
+
+...and after it.
 
 *** Section 1a
 
@@ -50,50 +58,60 @@ This section is included in the chapter's TOC.
 
 **** Subsection 1a1
 
-*** Section 1b  
+This subsection is also included.
+
+*** Section 1b: Excluded, but child included
 :PROPERTIES:
 :TOC:      :ignore this
 :END:
 
-This section is not, but its subsection is (you probably wouldn't want to do this, but you could).
+This section is not included in the chapter's TOC, but its subsection is (you probably wouldn't want to do this, but you could).
 
-**** Subsection 1b1
+**** Subsection 1b1: Included, despite its excluded parent
 
-** Chapter 2
+This subsection is included in the chapter's TOC even though its parent is excluded.
+
+** Chapter 2: TOC as sibling
 
 This chapter has its TOC as a sibling of its sections.
 
 *** Chapter 2 TOC
 :PROPERTIES:
-:TOC:    :include siblings :ignore this
+:TOC:    :include siblings
 :END:
 :CONTENTS:
 - [[#section-2a][Section 2a]]
   - [[#subsection-2a1][Subsection 2a1]]
-- [[#section-2b][Section 2b]]
-  - [[#subsection-2b1][Subsection 2b1]]
+- [[#section-2b-child-is-excluded][Section 2b: Child is excluded]]
 :END:
 
 *** Section 2a
 
+This section is included.
+
 **** Subsection 2a1
 
-*** Section 2b
+This subsection is included.
+
+*** Section 2b: Child is excluded
 :PROPERTIES:
-:TOC:      :depth 2
+:TOC:      :depth 0
 :END:
 
 This section is included in the TOC.
 
-**** Subsection 2b1
+**** Subsection 2b1: The excluded child
 
 But its subsection is not.
 
-** Chapter 3
+** Chapter 3: TOC as parent
+
+This chapter has its TOC as a parent of the chapter sections.
+
+*** Chapter 3 TOC
 :PROPERTIES:
 :TOC:      :include descendants
 :END:
-
 :CONTENTS:
 - [[#section-3a][Section 3a]]
   - [[#subsection-3a1][Subsection 3a1]]
@@ -101,25 +119,57 @@ But its subsection is not.
   - [[#subsection-3b1][Subsection 3b1]]
 :END:
 
-This chapter has a TOC in a drawer that co-exists with this paragraph.
+**** Section 3a
 
-*** Section 3a
+This section is included.
 
-**** Subsection 3a1
+***** Subsection 3a1
 
-*** Section 3b
+This subsection is included.
 
-**** Subsection 3b1
+**** Section 3b
 
+This section is included.
+
+***** Subsection 3b1
+
+This subsection is included.
+
+** Chapter 4: Limited depth
+:PROPERTIES:
+:TOC:       :include descendants :depth 1
+:END:
+
+This chapter's TOC uses =:depth 1= to exclude subsections.
+
+:CONTENTS:
+- [[#section-4a][Section 4a]]
+- [[#section-4b][Section 4b]]
+:END:
+
+*** Section 4a
+
+This section is included in the chapter's TOC.
+
+**** Subsection 4a1
+
+This subsection is excluded.
+
+*** Section 4b
+
+This section is included in the chapter's TOC.
+
+**** Subsection 4b1
+
+This subsection is excluded.
 
 ** Appendices
+:PROPERTIES:
+:TOC:      :include descendants :depth 1
+:END:
 
 The appendices have a local TOC, and one of them is a comprehensive TOC of the entire document (unlike the main TOC at the top of the document, which is abridged).
 
-*** Appendices TOC
-:PROPERTIES:
-:TOC:      :include siblings :depth 0 :ignore this
-:END:
 :CONTENTS:
 - [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
 - [[#appendix-b][Appendix B]]
@@ -128,34 +178,43 @@ The appendices have a local TOC, and one of them is a comprehensive TOC of the e
 
 *** Appendix A: Comprehensive TOC
 :PROPERTIES:
-:TOC:      :include all :force t
+:TOC:      :include all :force (depth ignore)
 :END:
+
+This comprehensive TOC uses =:include all :force (depth ignore)= to force all headings to be included, regardless of their local settings.
+
 :CONTENTS:
 - [[#document-top-level-heading][Document top-level heading]]
-  - [[#main-toc][Main ToC]]
-  - [[#chapter-1][Chapter 1]]
+  - [[#main-toc-itself-excluded][Main ToC: Itself excluded]]
+  - [[#chapter-1-inline-toc][Chapter 1: Inline TOC]]
     - [[#section-1a][Section 1a]]
       - [[#subsection-1a1][Subsection 1a1]]
-    - [[#section-1b][Section 1b]]
-      - [[#subsection-1b1][Subsection 1b1]]
-  - [[#chapter-2][Chapter 2]]
+    - [[#section-1b-excluded-but-child-included][Section 1b: Excluded, but child included]]
+      - [[#subsection-1b1-included-despite-its-excluded-parent][Subsection 1b1: Included, despite its excluded parent]]
+  - [[#chapter-2-toc-as-sibling][Chapter 2: TOC as sibling]]
     - [[#chapter-2-toc][Chapter 2 TOC]]
     - [[#section-2a][Section 2a]]
       - [[#subsection-2a1][Subsection 2a1]]
-    - [[#section-2b][Section 2b]]
-      - [[#subsection-2b1][Subsection 2b1]]
-  - [[#chapter-3][Chapter 3]]
-    - [[#section-3a][Section 3a]]
-      - [[#subsection-3a1][Subsection 3a1]]
-    - [[#section-3b][Section 3b]]
-      - [[#subsection-3b1][Subsection 3b1]]
+    - [[#section-2b-child-is-excluded][Section 2b: Child is excluded]]
+      - [[#subsection-2b1-the-excluded-child][Subsection 2b1: The excluded child]]
+  - [[#chapter-3-toc-as-parent][Chapter 3: TOC as parent]]
+    - [[#chapter-3-toc][Chapter 3 TOC]]
+      - [[#section-3a][Section 3a]]
+        - [[#subsection-3a1][Subsection 3a1]]
+      - [[#section-3b][Section 3b]]
+        - [[#subsection-3b1][Subsection 3b1]]
+  - [[#chapter-4-limited-depth][Chapter 4: Limited depth]]
+    - [[#section-4a][Section 4a]]
+      - [[#subsection-4a1][Subsection 4a1]]
+    - [[#section-4b][Section 4b]]
+      - [[#subsection-4b1][Subsection 4b1]]
   - [[#appendices][Appendices]]
-    - [[#appendices-toc][Appendices TOC]]
     - [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
     - [[#appendix-b][Appendix B]]
     - [[#appendix-c][Appendix C]]
-  - [[#footer][Footer]]
+  - [[#footer-excluded][Footer: Excluded]]
 :END:
+
 *** Appendix B
 
 Possibly vestigial.
@@ -164,7 +223,10 @@ Possibly vestigial.
 
 Definitely vestigial.
 
-** Footer
+** Footer: Excluded
+:PROPERTIES:
+:TOC:      :ignore this
+:END:
 
 # Local Variables:
 # before-save-hook: org-make-toc

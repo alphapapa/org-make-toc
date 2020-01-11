@@ -1,10 +1,10 @@
 ;;; org-make-toc.el --- Automatic tables of contents for Org files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018 Adam Porter
+;; Copyright (C) 2020 Adam Porter
 
 ;; Author: Adam Porter <adam@alphapapa.net>
 ;; URL: http://github.com/alphapapa/org-make-toc
-;; Version: 0.4
+;; Version: 0.5-pre
 ;; Package-Requires: ((emacs "25.1") (dash "2.12") (s "1.10.0") (org "9.0"))
 ;; Keywords: Org, convenience
 
@@ -23,31 +23,92 @@
 
 ;;;; Usage
 
-;; 1.  Make a heading in the Org file where you want the table of contents, and give it the Org
-;; property "TOC" with the value "this".
-
-;; 2.  Run the command `org-make-toc'.
-
-;;;;; Advanced
-
-;; A document may contain multiple tables of contents.  Tables of contents can be customized by
-;; setting the "TOC" property of headings to these values:
-
-;; +  "all": Include all headings in the file, except ignored headings.
-;; +  "children": Include only child headings of this ToC.
-;; +  "siblings": Include only sibling headings of this ToC.
-;; +  "ignore": Omit a heading from the TOC.
-;; +  "ignore-children" or "0": Omit a heading's child headings from the TOC.
-;; +  a number "N": Include child headings no more than "N" levels deep in the TOC.
-
-;;;;; Automatically update on save
-
-;; To automatically update a file's TOC when the file is saved, use the command
-;; "add-file-local-variable" to add "org-make-toc" to the Org file's "before-save-hook".
-
-;; Or, you may activate it in all Org buffers like this:
-
-;;   (add-hook 'org-mode-hook #'org-make-toc-mode)
+;; A document may have any number of tables of contents (TOCs), each of
+;; which may list entries in a highly configurable way.  To make a basic
+;; TOC, follow these steps:
+;;
+;; 1.  Choose a heading to contain a TOC and go to it.
+;; 2.  Press `C-c C-x p' (`org-set-property'), add a `TOC' property, and
+;;     set its value to `:include all'.
+;; 3.  Run command `org-make-toc-insert' to insert the `:CONTENTS:' drawer,
+;;     which will contain the TOC entries.
+;; 4.  Run the command `org-make-toc' to update all TOCs in the document,
+;;     or `org-make-toc-at-point' to update the TOC for the entry at point.
+;;
+;;
+;; Example
+;; ═══════
+;;
+;;   Here's a simple document containing a simple TOC:
+;;
+;;   ┌────
+;;   │ * Heading
+;;   │ :PROPERTIES:
+;;   │ :TOC:      :include all
+;;   │ :END:
+;;   │
+;;   │ This text appears before the TOC.
+;;   │
+;;   │ :CONTENTS:
+;;   │ - [[#heading][Heading]]
+;;   │   - [[#subheading][Subheading]]
+;;   │ :END:
+;;   │
+;;   │ This text appears after it.
+;;   │
+;;   │ ** Subheading
+;;   └────
+;;
+;;
+;; Advanced
+;; ════════
+;;
+;;   The `:TOC:' property is a property list which may set these keys and
+;;   values.
+;;
+;;   These keys accept one setting, like `:include all':
+;;
+;;   ⁃ `:include' Which headings to include in the TOC.
+;;     • `all' Include all headings in the document.
+;;     • `descendants' Include the TOC's descendant headings.
+;;     • `siblings' Include the TOC's sibling headings.
+;;   ⁃ `:depth' A number >= 0 indicating a depth relative to this heading.
+;;     Descendant headings at or above this relative depth are included in
+;;     TOCs that include this heading.
+;;
+;;   These keys accept either one setting or a list of settings, like
+;;   `:force depth' or `:force (depth ignore)':
+;;
+;;   ⁃ `:force' Heading-local settings to override when generating the TOC
+;;     at this heading.
+;;     • `depth' Override `:depth' settings.
+;;     • `ignore' Override `:ignore' settings.
+;;   ⁃ `:ignore' Which headings, relative to this heading, to exclude from
+;;     TOCs.
+;;     • `descendants' Exclude descendants of this heading.
+;;     • `siblings' Exclude siblings of this heading.
+;;     • `this' Exclude this heading (not its siblings or descendants).
+;;
+;;   See [example.org] for a comprehensive example of the features
+;;   described above.
+;;
+;;
+;; [example.org]
+;; https://github.com/alphapapa/org-make-toc/blob/master/example.org
+;;
+;;
+;; Automatically update on save
+;; ════════════════════════════
+;;
+;;   To automatically update a file's TOC when the file is saved, use the
+;;   command `add-file-local-variable' to add `org-make-toc' to the Org
+;;   file's `before-save-hook'.
+;;
+;;   Or, you may activate it in all Org buffers like this:
+;;
+;;   ┌────
+;;   │ (add-hook 'org-mode-hook #'org-make-toc-mode)
+;;   └────
 
 ;;; License:
 
@@ -131,7 +192,9 @@ with the destination of the published file."
   "Return position of next TOC, or nil."
   (save-excursion
     (when (and (re-search-forward (rx bol ":CONTENTS:" (0+ blank) eol) nil t)
-               (org-at-drawer-p))
+               (save-excursion
+                 (beginning-of-line)
+                 (looking-at-p org-drawer-regexp)))
       (point))))
 
 (defun org-make-toc--update-toc-at-point ()
@@ -142,7 +205,37 @@ with the destination of the published file."
 
 (defun org-make-toc--toc-at-point ()
   "Return TOC tree for entry at point."
-  (cl-labels ((children-p ()
+  (cl-labels ((descendants (&key depth force)
+                           (when (and (or (null depth) (> depth 0))
+                                      (children-p))
+                             (save-excursion
+                               (save-restriction
+                                 (org-narrow-to-subtree)
+                                 (outline-next-heading)
+                                 (cl-loop collect (cons (entry :force force)
+                                                        (unless (entry-match :ignore 'descendants)
+                                                          (descendants :depth (or (unless (arg-has force 'depth)
+                                                                                    (entry-property :depth))
+                                                                                  (when depth
+                                                                                    (1- depth)))
+                                                                       :force force)))
+                                          while (next-sibling))))))
+              (siblings (&key depth force)
+                        (save-excursion
+                          (save-restriction
+                            (when (org-up-heading-safe)
+                              (org-narrow-to-subtree)
+                              (outline-next-heading)
+                              (outline-next-heading))
+                            (cl-loop collect (cons (entry :force force)
+                                                   (unless (entry-match :ignore 'descendants)
+                                                     (descendants :depth (or (unless (arg-has force 'depth)
+                                                                               (entry-property :depth))
+                                                                             (when depth
+                                                                               (1- depth)))
+                                                                  :force force)))
+                                     while (next-sibling)))))
+              (children-p ()
                           (let ((level (org-current-level)))
                             (save-excursion
                               (when (outline-next-heading)
@@ -151,33 +244,13 @@ with the destination of the published file."
                             (let ((pos (point)))
                               (org-forward-heading-same-level 1 'invisible-ok)
                               (/= pos (point))))
-              (descendants (&key depth force-p)
-                           (when (and (or (null depth) (> depth 0))
-                                      (children-p))
-                             (save-excursion
-                               (save-restriction
-                                 (org-narrow-to-subtree)
-                                 (outline-next-heading)
-                                 (cl-loop collect (append (cons (entry :force-p force-p)
-                                                                (unless (entry-match :ignore 'descendants)
-                                                                  (descendants :depth (when depth
-                                                                                        (1- depth))
-                                                                               :force-p force-p))))
-                                          while (next-sibling))))))
-              (siblings (&key depth force-p)
-                        (save-excursion
-                          (save-restriction
-                            (when (org-up-heading-safe)
-                              (org-narrow-to-subtree)
-                              (outline-next-heading))
-                            (cl-loop collect (cons (entry :force-p force-p)
-                                                   (unless (entry-match :ignore 'descendants)
-                                                     (descendants :depth (when depth
-                                                                           (1- depth))
-                                                                  :force-p force-p)))
-                                     while (next-sibling)))))
-              (entry (&key force-p)
-                     (unless (and (not force-p) (entry-match :ignore 'this))
+              (arg-has (var val)
+                       (or (equal var val)
+                           (and (listp var)
+                                (member val var))))
+              (entry (&key force)
+                     (unless (and (not (arg-has force 'ignore))
+                                  (entry-match :ignore 'this))
                        (funcall org-make-toc-link-type-fn)))
               (entry-match (property value)
                            (when-let* ((found-value (entry-property property)))
@@ -188,7 +261,7 @@ with the destination of the published file."
                                          property)))
     (save-excursion
       (save-restriction
-        (-let* (((&plist :include :depth :force force-p)
+        (-let* (((&plist :include :depth :force force)
                  (read (concat "(" (org-entry-get (point) "TOC") ")")))
                 (tree (pcase include
                         ;; Set bounds.
@@ -196,9 +269,13 @@ with the destination of the published file."
                                (goto-char (point-min))
                                (when (org-before-first-heading-p)
                                  (outline-next-heading))
-                               (siblings :depth depth :force-p force-p)))
-                        ('descendants (descendants :depth depth :force-p force-p))
-                        ('siblings (siblings :depth depth :force-p force-p)))))
+                               (siblings :depth (or (unless (arg-has force 'depth)
+                                                      (entry-property :depth))
+                                                    (when depth
+                                                      (1- depth)))
+                                         :force force)))
+                        ('descendants (descendants :depth depth :force force))
+                        ('siblings (siblings :depth depth :force force)))))
           (org-make-toc--tree-to-list tree))))))
 
 (defun org-make-toc--tree-to-list (tree)
@@ -248,7 +325,9 @@ Replaces contents of :CONTENTS: drawer."
     (let* ((end (org-entry-end-position))
            contents-beg contents-end)
       (when (and (re-search-forward (rx bol ":CONTENTS:" (0+ blank) eol) end t)
-                 (org-at-drawer-p))
+                 (save-excursion
+                   (beginning-of-line)
+                   (looking-at-p org-drawer-regexp)))
         ;; Set the end first, then search back and skip any ":TOC:" property line in the drawer.
         (setf contents-end (save-excursion
                              (when (re-search-forward (rx bol ":END:" (0+ blank) eol) end)
@@ -259,8 +338,8 @@ Replaces contents of :CONTENTS: drawer."
                                      (looking-at-p (rx bol ":TOC:" (0+ blank) (group (1+ nonl)))))
                                (forward-line 1))
                              (point-at-eol))
-              contents (concat "\n" (string-trim contents) "\n")))
-      (setf (buffer-substring contents-beg contents-end) contents))))
+              contents (concat "\n" (string-trim contents) "\n")
+              (buffer-substring contents-beg contents-end) contents)))))
 
 (defun org-make-toc--visible-text (string)
   "Return only visible text in STRING after fontifying it like in Org-mode.
