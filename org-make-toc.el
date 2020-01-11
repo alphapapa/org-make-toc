@@ -103,234 +103,123 @@ with the destination of the published file."
   (save-excursion
     (goto-char (point-min))
     (cl-loop with made-toc
-             for position = (org-make-toc--find-next-property "TOC")
-             while position
+             for pos = (org-make-toc--next-toc-position)
+             while pos
              do (progn
-                  (goto-char position)
+                  (goto-char pos)
                   (when (org-make-toc--update-toc-at-point)
-                    (setq made-toc t))
-                  (or (outline-next-heading)
-                      (goto-char (point-max))))
+                    (setq made-toc t)))
              finally do (unless made-toc
                           (message "org-make-toc: No TOC node found.")))))
 
+;;;###autoload
 (defun org-make-toc-at-point ()
   "Make or update table of contents at current entry."
   (interactive)
   (unless (org-make-toc--update-toc-at-point)
     (user-error "No TOC node found")))
 
+;;;###autoload
+(defun org-make-toc-insert ()
+  "Insert \":CONTENTS:\" drawer at point."
+  (interactive)
+  (org-insert-drawer nil "CONTENTS"))
+
 ;;;; Functions
+
+(defun org-make-toc--next-toc-position ()
+  "Return position of next TOC, or nil."
+  (save-excursion
+    (when (and (re-search-forward (rx bol ":CONTENTS:" (0+ blank) eol) nil t)
+               (org-at-drawer-p))
+      (point))))
 
 (defun org-make-toc--update-toc-at-point ()
   "Make or update table of contents at current entry."
-  (when-let* ((toc-string (org-make-toc--toc-at (point))))
-    (setq toc-string (org-make-toc--remove-excess-indentation toc-string))
-    (org-make-toc--replace-entry-contents (point) toc-string)
+  (when-let* ((toc-string (org-make-toc--toc-at-point)))
+    (org-make-toc--replace-entry-contents toc-string)
     t))
 
-(defun org-make-toc--toc-at (position)
-  "Return table of contents as string for entry at POSITION."
-  (save-excursion
-    (save-restriction
-      (let ((type (org-entry-get position "TOC")))
-        (when (member type '("this" "all" "siblings" "children"))
-          (goto-char position)
-          (pcase type
-            ;; Widen or narrow as necessary
-            ((or "this" "all") (widen))
-            ("siblings" (if (ignore-errors
-                              (outline-up-heading 1))
-                            ;; Subtree: narrow to it.
-                            (narrow-to-region (save-excursion
-                                                (forward-line 1)
-                                                (point))
-                                              (save-excursion
-                                                (org-end-of-subtree)
-                                                (point)))
-                          ;; Top-level heading: widen.
-                          (widen)))
-            ("children" (org-narrow-to-subtree)))
-          (or (--> (cddr (org-element-parse-buffer 'headline))
-                   (org-make-toc--remove-ignored-entries it :keep-all (string= type "all"))
-                   (org-make-toc--tree-to-list it))
-              (error "Failed to build table of contents at position: %s" position)))))))
-
-(defun org-make-toc--find-next-property (property &optional value)
-  "Return position of next entry in buffer that has PROPERTY, or nil if none is found.
-When VALUE is non-nil, find entries for which PROPERTY has VALUE.
-Like `org-find-property', but searches forward from point instead
-of from the beginning of the buffer."
-  (save-excursion
-    (let ((case-fold-search t)
-          (re (org-re-property property nil (not value) value)))
-      (cl-loop while (re-search-forward re nil t)
-               when (if value
-                        (org-at-property-p)
-                      (org-entry-get (point) property nil t))
-               return (progn
-                        (org-back-to-heading t)
-                        (point))))))
-
-(defun org-make-toc--filter-tree (tree pred)
-  "Return TREE with elements for which PRED returns non-nil."
-  (cl-loop with properties
-           with children
-           for element in tree
-           when (eql 'headline (car element))
-           do (setq children (caddr element))
-           if (funcall pred element)
-           do (setq properties (cadr element))
-           else do (setq properties nil)
-           collect (list 'headline
-                         properties
-                         (org-make-toc--filter-tree children pred))))
-
-(defun org-make-toc--first-in-tree (tree test-fn value-fn)
-  "Return the value of VALUE-FN for the first heading in TREE that TEST-FN matches."
-  ;; In a way this is ugly, but in another way it's not, and it works.
-  (cl-loop for element in tree
-           for type = (car element)
-           do (org-element-property :title element)
-           if (eq 'headline type)
-           when (funcall test-fn element)
-           return (funcall value-fn element)
-           else
-           for children = (caddr element)
-           when children
-           for result = (org-make-toc--first-in-tree children test-fn value-fn)
-           when result
-           return result))
-
-(cl-defun org-make-toc--remove-ignored-entries (tree &key depth keep-all)
-  "Return TREE without ignored entries, up to DEPTH.
-When KEEP-ALL is non-nil, return all entries."
-  (cl-loop when (and depth
-                     (< depth 0))
-           return nil
-
-           for element in tree
-           for type = (car element)
-           for properties = (cadr element)
-           for children = (cddr element)
-           when (eql 'headline type)
-           for result = (if keep-all
-                            (list type
-                                  properties
-                                  (org-make-toc--remove-ignored-entries children
-                                                                        :depth (when depth
-                                                                                 (1- depth))
-                                                                        :keep-all keep-all))
-                          (pcase (org-element-property :TOC element)
-                            ;; Ignore this entry and its children
-                            ("ignore"
-                             nil)
-                            ;; Keep this entry but ignore its children
-                            ((or "ignore-children" "0")
-                             (list type properties))
-                            ;; Normal entry: descend into tree
-                            ((or (pred not) "")
-                             (list type
-                                   properties
-                                   (org-make-toc--remove-ignored-entries children
-                                                                         :depth (when depth
-                                                                                  (1- depth))
-                                                                         :keep-all keep-all)))
-                            ;; TOC entry; descend into but leave this entry blank so it won't be in the TOC
-                            ((or "this" "children" "siblings")
-                             (list type
-                                   (plist-put properties :title nil)
-                                   (org-make-toc--remove-ignored-entries children
-                                                                         :depth (when depth
-                                                                                  (1- depth))
-                                                                         :keep-all keep-all)))
-                            ;; Depth setting
-                            ((and number (guard (string-to-number number)))
-                             (list type
-                                   properties
-                                   (org-make-toc--remove-ignored-entries children
-                                                                         :depth (or (when depth
-                                                                                      (1- depth))
-                                                                                    (1- (string-to-number number)))
-                                                                         :keep-all keep-all)))
-                            ;; Invalid setting
-                            (other
-                             (goto-char (org-element-property :begin element))
-                             (user-error "Invalid value for TOC property at entry \"%s\": %s"
-                                         (org-element-property :title element) other))))
-           when result
-           collect result))
-
-;;;;; Filters
-
-(defun org-make-toc--remove-higher-level-than-toc (tree)
-  "Return TREE without headings that have a higher level than the TOC."
-  (let ((toc-level (org-make-toc--first-in-tree tree
-                                                #'org-make-toc--toc-entry-p
-                                                #'org-make-toc--element-level)))
-    (org-make-toc--filter-tree tree (lambda (element)
-                                      (>= (org-element-property :level element)
-                                          toc-level)))))
-
-;;;;; Predicates
-
-(defun org-make-toc--toc-entry-p (element)
-  "Return non-nil if ELEMENT is the table of contents."
-  (string= "this" (org-element-property :TOC element)))
-
-;;;;; Transformer
+(defun org-make-toc--toc-at-point ()
+  "Return TOC tree for entry at point."
+  (cl-labels ((children-p ()
+                          (let ((level (org-current-level)))
+                            (save-excursion
+                              (when (outline-next-heading)
+                                (> (org-current-level) level)))))
+              (next-sibling ()
+                            (let ((pos (point)))
+                              (org-forward-heading-same-level 1 'invisible-ok)
+                              (/= pos (point))))
+              (descendants (&key depth force-p)
+                           (when (and (or (null depth) (> depth 0))
+                                      (children-p))
+                             (save-excursion
+                               (save-restriction
+                                 (org-narrow-to-subtree)
+                                 (outline-next-heading)
+                                 (cl-loop collect (append (cons (entry :force-p force-p)
+                                                                (unless (entry-match :ignore 'descendants)
+                                                                  (descendants :depth (when depth
+                                                                                        (1- depth))
+                                                                               :force-p force-p))))
+                                          while (next-sibling))))))
+              (siblings (&key depth force-p)
+                        (save-excursion
+                          (save-restriction
+                            (when (org-up-heading-safe)
+                              (org-narrow-to-subtree)
+                              (outline-next-heading))
+                            (cl-loop collect (cons (entry :force-p force-p)
+                                                   (unless (entry-match :ignore 'descendants)
+                                                     (descendants :depth (when depth
+                                                                           (1- depth))
+                                                                  :force-p force-p)))
+                                     while (next-sibling)))))
+              (entry (&key force-p)
+                     (unless (and (not force-p) (entry-match :ignore 'this))
+                       (funcall org-make-toc-link-type-fn)))
+              (entry-match (property value)
+                           (when-let* ((found-value (entry-property property)))
+                             (or (equal value found-value)
+                                 (and (listp found-value) (member value found-value)))))
+              (entry-property (property)
+                              (plist-get (read (concat "(" (org-entry-get (point) "TOC") ")"))
+                                         property)))
+    (save-excursion
+      (save-restriction
+        (-let* (((&plist :include :depth :force force-p)
+                 (read (concat "(" (org-entry-get (point) "TOC") ")")))
+                (tree (pcase include
+                        ;; Set bounds.
+                        ('all (org-with-wide-buffer
+                               (goto-char (point-min))
+                               (when (org-before-first-heading-p)
+                                 (outline-next-heading))
+                               (siblings :depth depth :force-p force-p)))
+                        ('descendants (descendants :depth depth :force-p force-p))
+                        ('siblings (siblings :depth depth :force-p force-p)))))
+          (org-make-toc--tree-to-list tree))))))
 
 (defun org-make-toc--tree-to-list (tree)
-  "Return TREE converted to a table of contents as a plain list."
-  (let* ((contents (s-join "\n"
-                           (cl-loop for element in tree
-                                    for level = (or (org-element-property :level element) 0)
-                                    for indent = (s-repeat (* 2 level) " ")
-                                    for children = (org-make-toc--tree-to-list (caddr element))
-                                    for link = (funcall org-make-toc-link-type-fn element)
-                                    collect (concat indent "-" "  " link "\n" children)))))
-    (with-temp-buffer
-      (insert contents)
-      (goto-char (point-min))
-      ;; Remove blank lines and blank list items (ignored items with
-      ;; non-ignored children are left as parent nodes, so we must
-      ;; delete them; this is probably the easiest way)
-      (flush-lines (rx bol (optional
-                            (optional (1+ space))
-                            "-"
-                            (optional (1+ space)))
-                       eol))
-      (if (= (buffer-size) 0)
-          ;; Empty buffer.
-          ""
-        ;; Insert blank line after list.
-        (goto-char (point-max))
-        (insert "\n")
-        ;; Remove excess indentation.
-        (buffer-string)))))
+  "Return list string for TOC TREE."
+  (cl-labels ((tree (tree depth)
+                    (when (> (length tree) 0)
+                      (when-let* ((entries (->> (append (when (car tree)
+                                                          (list (concat (s-repeat depth "  ")
+                                                                        "- " (car tree))))
+                                                        (--map (tree it (1+ depth))
+                                                               (cdr tree)))
+                                                -non-nil -flatten)))
+                        (s-join "\n" entries)))))
+    (->> tree
+         (--map (tree it 0))
+         -flatten (s-join "\n"))))
 
-(defun org-make-toc--remove-excess-indentation (s)
-  "Remove excess indentation in string S.
-Preserves indentation of each line relative to the others."
-  (with-temp-buffer
-    (insert s)
-    (let* ((excess (progn
-                     (goto-char (point-min))
-                     (cl-loop while (re-search-forward (rx bol (1+ blank)) nil t)
-                              minimize (length (match-string 0))
-                              do (forward-line 1)
-                              until (eobp)))))
-      (when (and excess (> excess 0))
-        (goto-char (point-min))
-        (while (re-search-forward (rx-to-string `(seq bol (repeat 1 ,excess blank)) t)
-                                  nil t)
-          (replace-match "")
-          (forward-line 1))))
-    (buffer-string)))
-
-(defun org-make-toc--link-entry-github (entry)
+(defun org-make-toc--link-entry-github ()
   "Return text for ENTRY converted to GitHub style link."
-  (-when-let* ((title (org-element-property :title entry))
+  ;; FIXME: org-get-heading takes more arguments in newer Orgs.
+  (-when-let* ((title (org-get-heading t t))
                (target (--> title
                             (downcase it)
                             (replace-regexp-in-string " " "-" it)
@@ -351,47 +240,26 @@ Preserves indentation of each line relative to the others."
     (org-make-link-string (concat filename title)
                           (org-make-toc--visible-text title))))
 
-;;;;; Misc
-
-(defun org-make-toc--toc-level (tree)
-  "Return the outline level of the table of contents in TREE."
-  (org-make-toc--first-in-tree tree
-                               #'org-make-toc--toc-entry-p
-                               #'org-make-toc--element-level))
-
-(defun org-make-toc--element-level (element)
-  "Return the outline level of Org element ELEMENT."
-  (org-element-property :level element))
-
-(defun org-make-toc--replace-entry-contents (pos contents)
-  "Replace the contents of entry at POS with CONTENTS.
-If entry has a \":CONTENTS:\" drawer, replace its contents
-instead of the whole entry."
+(defun org-make-toc--replace-entry-contents (contents)
+  "Replace the contents of TOC in entry at point with CONTENTS.
+Replaces contents of :CONTENTS: drawer."
   (save-excursion
-    (goto-char pos)
     (org-back-to-heading)
     (let* ((end (org-entry-end-position))
            contents-beg contents-end)
-      (if (and (re-search-forward (rx bol ":CONTENTS:" (0+ blank) eol) end t)
-               (org-at-drawer-p))
-          ;; :CONTENTS: drawer found: replace its contents.
-          (progn
-            ;; Set the end first, then search back and skip any ":TOC:" property line in the drawer.
-            (setf contents-end (save-excursion
-                                 (when (re-search-forward (rx bol ":END:" (0+ blank) eol) end)
-                                   (match-beginning 0)))
-                  contents-beg (progn
-                                 (when (save-excursion
-                                         (forward-line 1)
-                                         (looking-at-p (rx bol ":TOC:" (0+ blank) (group (1+ nonl)))))
-                                   (forward-line 1))
-                                 (point-at-eol))
-                  contents (concat "\n" (string-trim contents) "\n")))
-        ;; No drawer found: replace whole entry.
-        (setf contents-beg (progn
-                             (org-end-of-meta-data)
-                             (point-at-bol))
-              contents-end end))
+      (when (and (re-search-forward (rx bol ":CONTENTS:" (0+ blank) eol) end t)
+                 (org-at-drawer-p))
+        ;; Set the end first, then search back and skip any ":TOC:" property line in the drawer.
+        (setf contents-end (save-excursion
+                             (when (re-search-forward (rx bol ":END:" (0+ blank) eol) end)
+                               (match-beginning 0)))
+              contents-beg (progn
+                             (when (save-excursion
+                                     (forward-line 1)
+                                     (looking-at-p (rx bol ":TOC:" (0+ blank) (group (1+ nonl)))))
+                               (forward-line 1))
+                             (point-at-eol))
+              contents (concat "\n" (string-trim contents) "\n")))
       (setf (buffer-substring contents-beg contents-end) contents))))
 
 (defun org-make-toc--visible-text (string)
@@ -412,9 +280,7 @@ created."
         (setq-local org-hide-emphasis-markers t)))
     (with-current-buffer buffer
       (insert string)
-      ;; FIXME: "Warning: ‘font-lock-fontify-buffer’ is for interactive use only; use
-      ;; ‘font-lock-ensure’ or ‘font-lock-flush’ instead."
-      (font-lock-fontify-buffer)
+      (font-lock-ensure)
       ;; This is more complicated than I would like, but the `org-find-invisible' and
       ;; `org-find-visible' functions don't seem to be appropriate to this task, so this works.
       (prog1

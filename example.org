@@ -6,64 +6,73 @@ This is an example of a complex document.  To see the Org syntax, view the [[htt
 
 ** Main ToC 
 :PROPERTIES:
-:TOC:      this
+:TOC:      :include all :ignore this
 :END:
--  [[#document-top-level-heading][Document top-level heading]]
-  -  [[#chapter-1][Chapter 1]]
-      -  [[#section-1a][Section 1a]]
-        -  [[#subsection-1a1][Subsection 1a1]]
-  -  [[#chapter-2][Chapter 2]]
-    -  [[#section-2a][Section 2a]]
-      -  [[#subsection-2a1][Subsection 2a1]]
-    -  [[#section-2b][Section 2b]]
-    -  [[#section-3a][Section 3a]]
-      -  [[#subsection-3a1][Subsection 3a1]]
-    -  [[#section-3b][Section 3b]]
-      -  [[#subsection-3b1][Subsection 3b1]]
-  -  [[#appendices][Appendices]]
-    -  [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
-    -  [[#appendix-b][Appendix B]]
-    -  [[#appendix-c][Appendix C]]
-  -  [[#footer][Footer]]
+:CONTENTS:
+- [[#document-top-level-heading][Document top-level heading]]
+  - [[#chapter-1][Chapter 1]]
+    - [[#section-1a][Section 1a]]
+      - [[#subsection-1a1][Subsection 1a1]]
+      - [[#subsection-1b1][Subsection 1b1]]
+  - [[#chapter-2][Chapter 2]]
+    - [[#section-2a][Section 2a]]
+      - [[#subsection-2a1][Subsection 2a1]]
+    - [[#section-2b][Section 2b]]
+      - [[#subsection-2b1][Subsection 2b1]]
+  - [[#chapter-3][Chapter 3]]
+    - [[#section-3a][Section 3a]]
+      - [[#subsection-3a1][Subsection 3a1]]
+    - [[#section-3b][Section 3b]]
+      - [[#subsection-3b1][Subsection 3b1]]
+  - [[#appendices][Appendices]]
+    - [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
+    - [[#appendix-b][Appendix B]]
+    - [[#appendix-c][Appendix C]]
+  - [[#footer][Footer]]
+:END:
 
 ** Chapter 1
-
--  [[#section-1a][Section 1a]]
-  -  [[#subsection-1a1][Subsection 1a1]]
-
-*** Chapter 1 TOC 
 :PROPERTIES:
-:TOC:      children 
+:TOC:       :include descendants
 :END:
--  [[#section-1a][Section 1a]]
-  -  [[#subsection-1a1][Subsection 1a1]]
 
-**** Section 1a
+This chapter includes its TOC inline.
+
+:CONTENTS:
+- [[#section-1a][Section 1a]]
+  - [[#subsection-1a1][Subsection 1a1]]
+  - [[#subsection-1b1][Subsection 1b1]]
+:END:
+
+*** Section 1a
 
 This section is included in the chapter's TOC.
 
-***** Subsection 1a1
+**** Subsection 1a1
 
-**** Section 1b  
+*** Section 1b  
 :PROPERTIES:
-:TOC:      ignore
+:TOC:      :ignore this
 :END:
 
-This section is not.
+This section is not, but its subsection is (you probably wouldn't want to do this, but you could).
 
-***** Subsection 1b1
+**** Subsection 1b1
 
 ** Chapter 2
 
-This chapter has sections as siblings of the chapter's TOC.
+This chapter has its TOC as a sibling of its sections.
 
 *** Chapter 2 TOC
 :PROPERTIES:
-:TOC:    siblings
+:TOC:    :include siblings :ignore this
 :END:
--  [[#section-2a][Section 2a]]
-  -  [[#subsection-2a1][Subsection 2a1]]
--  [[#section-2b][Section 2b]]
+:CONTENTS:
+- [[#section-2a][Section 2a]]
+  - [[#subsection-2a1][Subsection 2a1]]
+- [[#section-2b][Section 2b]]
+  - [[#subsection-2b1][Subsection 2b1]]
+:END:
 
 *** Section 2a
 
@@ -71,7 +80,7 @@ This chapter has sections as siblings of the chapter's TOC.
 
 *** Section 2b
 :PROPERTIES:
-:TOC:      0
+:TOC:      :depth 2
 :END:
 
 This section is included in the TOC.
@@ -82,14 +91,14 @@ But its subsection is not.
 
 ** Chapter 3
 :PROPERTIES:
-:TOC:      children
+:TOC:      :include descendants
 :END:
 
 :CONTENTS:
--  [[#section-3a][Section 3a]]
-  -  [[#subsection-3a1][Subsection 3a1]]
--  [[#section-3b][Section 3b]]
-  -  [[#subsection-3b1][Subsection 3b1]]
+- [[#section-3a][Section 3a]]
+  - [[#subsection-3a1][Subsection 3a1]]
+- [[#section-3b][Section 3b]]
+  - [[#subsection-3b1][Subsection 3b1]]
 :END:
 
 This chapter has a TOC in a drawer that co-exists with this paragraph.
@@ -109,42 +118,44 @@ The appendices have a local TOC, and one of them is a comprehensive TOC of the e
 
 *** Appendices TOC
 :PROPERTIES:
-:TOC:      siblings
+:TOC:      :include siblings :depth 0 :ignore this
 :END:
--  [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
--  [[#appendix-b][Appendix B]]
--  [[#appendix-c][Appendix C]]
+:CONTENTS:
+- [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
+- [[#appendix-b][Appendix B]]
+- [[#appendix-c][Appendix C]]
+:END:
 
 *** Appendix A: Comprehensive TOC
 :PROPERTIES:
-:TOC:      all
+:TOC:      :include all :force t
 :END:
--  [[#document-top-level-heading][Document top-level heading]]
-  -  [[#main-toc][Main ToC]]
-  -  [[#chapter-1][Chapter 1]]
-    -  [[#chapter-1-toc][Chapter 1 TOC]]
-      -  [[#section-1a][Section 1a]]
-        -  [[#subsection-1a1][Subsection 1a1]]
-      -  [[#section-1b][Section 1b]]
-        -  [[#subsection-1b1][Subsection 1b1]]
-  -  [[#chapter-2][Chapter 2]]
-    -  [[#chapter-2-toc][Chapter 2 TOC]]
-    -  [[#section-2a][Section 2a]]
-      -  [[#subsection-2a1][Subsection 2a1]]
-    -  [[#section-2b][Section 2b]]
-      -  [[#subsection-2b1][Subsection 2b1]]
-  -  [[#chapter-3][Chapter 3]]
-    -  [[#section-3a][Section 3a]]
-      -  [[#subsection-3a1][Subsection 3a1]]
-    -  [[#section-3b][Section 3b]]
-      -  [[#subsection-3b1][Subsection 3b1]]
-  -  [[#appendices][Appendices]]
-    -  [[#appendices-toc][Appendices TOC]]
-    -  [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
-    -  [[#appendix-b][Appendix B]]
-    -  [[#appendix-c][Appendix C]]
-  -  [[#footer][Footer]]
-
+:CONTENTS:
+- [[#document-top-level-heading][Document top-level heading]]
+  - [[#main-toc][Main ToC]]
+  - [[#chapter-1][Chapter 1]]
+    - [[#section-1a][Section 1a]]
+      - [[#subsection-1a1][Subsection 1a1]]
+    - [[#section-1b][Section 1b]]
+      - [[#subsection-1b1][Subsection 1b1]]
+  - [[#chapter-2][Chapter 2]]
+    - [[#chapter-2-toc][Chapter 2 TOC]]
+    - [[#section-2a][Section 2a]]
+      - [[#subsection-2a1][Subsection 2a1]]
+    - [[#section-2b][Section 2b]]
+      - [[#subsection-2b1][Subsection 2b1]]
+  - [[#chapter-3][Chapter 3]]
+    - [[#section-3a][Section 3a]]
+      - [[#subsection-3a1][Subsection 3a1]]
+    - [[#section-3b][Section 3b]]
+      - [[#subsection-3b1][Subsection 3b1]]
+  - [[#appendices][Appendices]]
+    - [[#appendices-toc][Appendices TOC]]
+    - [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
+    - [[#appendix-b][Appendix B]]
+    - [[#appendix-c][Appendix C]]
+  - [[#footer][Footer]]
+:END:
 *** Appendix B
 
 Possibly vestigial.
