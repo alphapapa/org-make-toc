@@ -13,7 +13,7 @@ This heading itself is excluded from its TOC.
 
 :CONTENTS:
 - [[#document-top-level-heading][Document top-level heading]]
-  - [[#chapter-1-inline-toc][Chapter 1: Inline TOC]]
+  - [[*Chapter 1: Inline TOC][Chapter 1: Inline TOC]]
     - [[#section-1a][Section 1a]]
       - [[#subsection-1a1][Subsection 1a1]]
       - [[#subsection-1b1-included-despite-its-excluded-parent][Subsection 1b1: Included, despite its excluded parent]]
