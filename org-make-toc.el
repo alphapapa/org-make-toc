@@ -307,10 +307,10 @@ with the destination of the published file."
     (org-make-link-string (concat filename "#" target)
                           (org-make-toc--visible-text title))))
 
-(defun org-make-toc--link-entry-org (entry)
+(defun org-make-toc--link-entry-org ()
   "Return text for ENTRY converted to regular Org link."
   ;; FIXME: There must be a built-in function to do this, although it might be in `org-export'.
-  (-when-let* ((title (org-element-property :title entry))
+  (-when-let* ((title (org-get-heading t t))
                (filename (if org-make-toc-filename-prefix
                              (concat "file:" (file-name-nondirectory (buffer-file-name)) "::")
                            "")))
