@@ -298,6 +298,7 @@ with the destination of the published file."
   ;; FIXME: org-get-heading takes more arguments in newer Orgs.
   (-when-let* ((title (org-get-heading t t))
                (target (--> title
+                            org-link-display-format
                             (downcase it)
                             (replace-regexp-in-string " " "-" it)
                             (replace-regexp-in-string "[^[:alnum:]_-]" "" it)))
