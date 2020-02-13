@@ -88,6 +88,9 @@
 ;;     • `descendants' Exclude descendants of this heading.
 ;;     • `siblings' Exclude siblings of this heading.
 ;;     • `this' Exclude this heading (not its siblings or descendants).
+;;   ⁃ `:local' Heading-local settings to ignore when generating TOCs at
+;;     higher levels.
+;;     • `depth' Ignore `:depth' settings.
 ;;
 ;;   See [example.org] for a comprehensive example of the features
 ;;   described above.
@@ -259,7 +262,10 @@ with the destination of the published file."
                  :ignore (completing-read-multiple "Ignore entries (one or more): "
                                                    '(("nothing" . nil) ("descendants" . descendants)
                                                      ("siblings" . siblings) ("this" . this))
-                                                   nil t (property :ignore)))))
+                                                   nil t (property :ignore))
+                 :local (completing-read-multiple "Tree-local settings (one or more): "
+                                                  '(("nothing" . nil) ("depth" . depth))
+                                                  nil t (property :force)))))
       (substring (format "%s" (cl-loop for (property value) on props by #'cddr
                                        unless (member value '("" "nil" nil))
                                        append (list property value)))
@@ -291,7 +297,8 @@ with the destination of the published file."
                                  (outline-next-heading)
                                  (cl-loop collect (cons (entry :force force)
                                                         (unless (entry-match :ignore 'descendants)
-                                                          (descendants :depth (or (unless (arg-has force 'depth)
+                                                          (descendants :depth (or (unless (or (arg-has force 'depth)
+                                                                                              (entry-match :local 'depth))
                                                                                     (entry-property :depth))
                                                                                   (when depth
                                                                                     (1- depth)))
@@ -306,7 +313,8 @@ with the destination of the published file."
                               (outline-next-heading))
                             (cl-loop collect (cons (entry :force force)
                                                    (unless (entry-match :ignore 'descendants)
-                                                     (descendants :depth (or (unless (arg-has force 'depth)
+                                                     (descendants :depth (or (unless (or (arg-has force 'depth)
+                                                                                         (entry-match :local 'depth))
                                                                                (entry-property :depth))
                                                                              (when depth
                                                                                (1- depth)))

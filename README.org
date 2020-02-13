@@ -98,6 +98,8 @@ These keys accept either one setting or a list of settings, like =:force depth= 
      -  =descendants= Exclude descendants of this heading.
      -  =siblings= Exclude siblings of this heading.
      -  =this= Exclude this heading (not its siblings or descendants).
++  =:local= Heading-local settings to ignore when generating TOCs at higher levels.
+     -  =depth= Ignore =:depth= settings.
 
 See [[https://github.com/alphapapa/org-make-toc/blob/master/example.org][example.org]] for a comprehensive example of the features described above.
 

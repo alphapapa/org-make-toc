@@ -119,6 +119,8 @@ This works, but it helped me figure out how to use =org-element-map=, so I guess
 #+RESULTS:
 : ((headline :name "Notes" :children ((headline :name "Filter tree" :children ((headline :name "Use treepy to walk the tree" :children nil) (headline :name "Remove ignored headings" :children ((headline :name "cl-loop" :children nil) (headline :name "org-element-map" :children nil))) (headline :name "Remove too-deep headings" :children nil) (headline :name "Remove higher headings" :children nil))) (headline :name "Transform tree to org list" :children nil) (headline :name "Find TOC element" :children nil) (headline :name "Replace TOC contents with list" :children nil))))
 
+** TODO Add =:local= to examples.org
+
 ** TODO Filter tree
 
 *** DONE Remove higher headings
