@@ -49,7 +49,7 @@ A document may have any number of tables of contents (TOCs), each of which may l
 
 1.  Choose a heading to contain a TOC and go to it.
 2.  Press =C-c C-x p= (=org-set-property=), add a =TOC= property, and set its value to =:include all=.
-3.  Run command =org-make-toc-insert= to insert the =:CONTENTS:= drawer, which will contain the TOC entries.
+3.  Run command =org-make-toc-insert=, which inserts a =:CONTENTS:= drawer and sets TOC properties.
 4.  Run the command =org-make-toc= to update all TOCs in the document, or =org-make-toc-at-point= to update the TOC for the entry at point.
 
 ** Example
@@ -75,6 +75,8 @@ Here's a simple document containing a simple TOC:
 #+END_SRC
 
 ** Advanced
+
+Use command =org-make-toc-set= to set TOC properties at point with completion.
 
 The =:TOC:= property is a property list which may set these keys and values.
 

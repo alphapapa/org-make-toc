@@ -184,9 +184,52 @@ with the destination of the published file."
 (defun org-make-toc-insert ()
   "Insert \":CONTENTS:\" drawer at point."
   (interactive)
-  (org-insert-drawer nil "CONTENTS"))
+  (org-insert-drawer nil "CONTENTS")
+  (call-interactively #'org-make-toc-set))
+
+;;;###autoload
+(defun org-make-toc-set (properties)
+  "Set TOC PROPERTIES of entry at point."
+  (interactive (list (org-make-toc--complete-toc-properties)))
+  (org-set-property "TOC" properties))
 
 ;;;; Functions
+
+(defun org-make-toc--complete-toc-properties ()
+  "Return TOC properties string read with completion."
+  (cl-labels ((property (property)
+                        (--> (org-entry-get (point) "TOC")
+                             (concat "(" it ")") (read it)
+                             (plist-get it property)
+                             (if it
+                                 (prin1-to-string it)
+                               "")))
+              (read-number (prompt &optional initial-input)
+                           ;; The default `read-number' only accepts a number, and
+                           ;; we need to allow the user to input nothing.  But
+                           ;; using `read-string' with `string-to-number' returns
+                           ;; 0 for the empty string, so we use this instead.
+                           (let ((input (read-string prompt initial-input)))
+                             (pcase input
+                               ((rx bos (1+ digit) eos)
+                                (string-to-number input))
+                               ((rx bos (0+ blank) eos) "")
+                               (_ (read-number prompt initial-input))))))
+    (let ((props
+           (list :include (completing-read "Include entries: "
+                                           '(nil all descendants siblings)
+                                           nil t (property :include))
+                 :depth (read-number "Depth (number): " (property :depth))
+                 :force (completing-read-multiple "Force (one or more): "
+                                                  '(nil depth ignore)
+                                                  nil t (property :force))
+                 :ignore (completing-read-multiple "Ignore entries (one or more): "
+                                                   '(nil descendants siblings this)
+                                                   nil t (property :ignore)))))
+      (substring (format "%s" (cl-loop for (property value) on props by #'cddr
+                                       unless (member value '("" "nil"))
+                                       append (list property value)))
+                 1 -1))))
 
 (defun org-make-toc--next-toc-position ()
   "Return position of next TOC, or nil."
