@@ -253,12 +253,12 @@ with the destination of the published file."
                            nil t (property :include))
                  :depth (read-number "Depth (number): " (property :depth))
                  :force (completing-read-multiple "Force (one or more): "
-                                                  '(("Nothing" . nil) ("Depth" . depth)
-                                                    ("Ignore" . ignore))
+                                                  '(("nothing" . nil) ("depth" . depth)
+                                                    ("ignore" . ignore))
                                                   nil t (property :force))
                  :ignore (completing-read-multiple "Ignore entries (one or more): "
-                                                   '(("Nothing" . nil) ("Descendants" . descendants)
-                                                     ("Siblings" . siblings) ("This" . this))
+                                                   '(("nothing" . nil) ("descendants" . descendants)
+                                                     ("siblings" . siblings) ("this" . this))
                                                    nil t (property :ignore)))))
       (substring (format "%s" (cl-loop for (property value) on props by #'cddr
                                        unless (member value '("" "nil" nil))
