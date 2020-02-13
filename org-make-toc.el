@@ -235,20 +235,32 @@ with the destination of the published file."
                                ((rx bos (1+ digit) eos)
                                 (string-to-number input))
                                ((rx bos (0+ blank) eos) "")
-                               (_ (read-number prompt initial-input))))))
+                               (_ (read-number prompt initial-input)))))
+              (completing-read-description
+               (prompt collection &optional predicate require-match
+                       initial-input hist def inherit-input-method)
+               (let ((choice (completing-read prompt collection predicate require-match
+                                              initial-input hist def inherit-input-method)))
+                 (alist-get choice collection nil nil #'equal)))
+              ;; TODO: Version of `completing-read-multiple' that works like that.  Sigh.
+              )
     (let ((props
-           (list :include (completing-read "Include entries: "
-                                           '(nil all descendants siblings)
-                                           nil t (property :include))
+           (list :include (completing-read-description
+                           "Include entries: "
+                           '(("None" . nil) ("All" . all) ("Descendants" . descendants)
+                             ("Siblings" . siblings))
+                           nil t (property :include))
                  :depth (read-number "Depth (number): " (property :depth))
                  :force (completing-read-multiple "Force (one or more): "
-                                                  '(nil depth ignore)
+                                                  '(("Nothing" . nil) ("Depth" . depth)
+                                                    ("Ignore" . ignore))
                                                   nil t (property :force))
                  :ignore (completing-read-multiple "Ignore entries (one or more): "
-                                                   '(nil descendants siblings this)
+                                                   '(("Nothing" . nil) ("Descendants" . descendants)
+                                                     ("Siblings" . siblings) ("This" . this))
                                                    nil t (property :ignore)))))
       (substring (format "%s" (cl-loop for (property value) on props by #'cddr
-                                       unless (member value '("" "nil"))
+                                       unless (member value '("" "nil" nil))
                                        append (list property value)))
                  1 -1))))
 
