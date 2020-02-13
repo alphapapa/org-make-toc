@@ -184,8 +184,29 @@ with the destination of the published file."
 (defun org-make-toc-insert ()
   "Insert \":CONTENTS:\" drawer at point."
   (interactive)
-  (org-insert-drawer nil "CONTENTS")
-  (call-interactively #'org-make-toc-set))
+  (cl-labels ((contents-begin
+               (&optional unsafe)
+               ;; Skip headline, planning line, and all drawers in current
+               ;; entry. If UNSAFE is non-nil, assume point is on headline.
+               (unless unsafe
+                 ;; To improve performance in loops (e.g. with `org-map-entries')
+                 (org-back-to-heading))
+               ;; Skip to contents-begin first.
+               (when (eq 'headline (org-element-type (org-element-at-point)))
+                 (goto-char (org-element-property :contents-begin (org-element-at-point))))
+               (cl-loop for element = (org-element-at-point)
+                        for pos = (pcase-exhaustive element
+                                    (`(,(or 'planning 'property-drawer 'drawer) . ,_)
+                                     (org-element-property :end element))
+                                    (`(headline . ,_)
+                                     (cl-return (1- (org-element-property :begin element)))))
+                        while pos
+                        do (goto-char pos)
+                        finally return (point))))
+    (save-excursion
+      (goto-char (contents-begin))
+      (org-insert-drawer nil "CONTENTS")
+      (call-interactively #'org-make-toc-set))))
 
 ;;;###autoload
 (defun org-make-toc-set (properties)
