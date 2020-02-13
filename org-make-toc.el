@@ -193,12 +193,13 @@ with the destination of the published file."
                  (org-back-to-heading))
                ;; Skip to contents-begin first.
                (when (eq 'headline (org-element-type (org-element-at-point)))
-                 (goto-char (org-element-property :contents-begin (org-element-at-point))))
+                 (goto-char (or (org-element-property :contents-begin (org-element-at-point))
+                                (org-element-property :end (org-element-at-point)))))
                (cl-loop for element = (org-element-at-point)
                         for pos = (pcase-exhaustive element
                                     (`(,(or 'planning 'property-drawer 'drawer) . ,_)
                                      (org-element-property :end element))
-                                    (`(headline . ,_)
+                                    (`(,(or 'headline 'paragraph) . ,_)
                                      (cl-return (1- (org-element-property :begin element)))))
                         while pos
                         do (goto-char pos)
