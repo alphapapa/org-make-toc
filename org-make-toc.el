@@ -202,7 +202,7 @@ with the destination of the published file."
                         for pos = (pcase-exhaustive element
                                     (`(,(or 'planning 'property-drawer 'drawer) . ,_)
                                      (org-element-property :end element))
-                                    (`(,(or 'headline 'paragraph) . ,_)
+                                    (_
                                      (cl-return (1- (org-element-property :begin element)))))
                         while pos
                         do (goto-char pos)
