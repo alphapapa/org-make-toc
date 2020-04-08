@@ -203,7 +203,8 @@ with the destination of the published file."
                                     (`(,(or 'planning 'property-drawer 'drawer) . ,_)
                                      (org-element-property :end element))
                                     (_
-                                     (cl-return (1- (org-element-property :begin element)))))
+                                     (cl-return (or (org-element-property :contents-begin element)
+                                                    (org-element-property :end element)))))
                         while pos
                         do (goto-char pos)
                         finally return (point))))
