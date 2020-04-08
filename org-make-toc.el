@@ -412,7 +412,7 @@ with the destination of the published file."
   "Replace the contents of TOC in entry at point with CONTENTS.
 Replaces contents of :CONTENTS: drawer."
   (save-excursion
-    (org-back-to-heading)
+    (org-back-to-heading 'invisible-ok)
     (let* ((end (org-entry-end-position))
            contents-beg contents-end)
       (when (and (re-search-forward (rx bol ":CONTENTS:" (0+ blank) eol) end t)
