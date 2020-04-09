@@ -23,7 +23,6 @@ This package makes it easy to have one or more customizable tables of contents i
 - [[#changelog][Changelog]]
 :END:
 
-
 * Installation
 
 ** MELPA
@@ -124,7 +123,7 @@ Unfortunately, due to the way GitHub renders Org documents and links, it's not p
 
 ** 0.5-pre
 
-This version is a major rewrite.  Please see the usage instructions anew.
+This version is a major rewrite that requires reconfiguring existing TOCs.  Please see the usage instructions anew.  Users who don't want to convert to 0.5-style TOCs may continue using version 0.4.
 
 *Changes*
 +  TOCs are now contained in =:CONTENTS:= drawers, which allows them to co-exist with entry content and be placed flexibly.
@@ -186,6 +185,7 @@ This package was inspired by Sergei Nosov's [[https://github.com/snosov1/toc-org
 :PROPERTIES:
 :TOC:      :ignore this
 :END:
+
 Bug reports, feature requests, suggestions — /oh my/!
 
 * License
