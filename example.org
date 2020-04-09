@@ -31,6 +31,16 @@ This heading itself is excluded from its TOC.
   - [[#chapter-4-limited-depth][Chapter 4: Limited depth]]
     - [[#section-4a][Section 4a]]
     - [[#section-4b][Section 4b]]
+  - [[#chapter-5-local-settings][Chapter 5: Local settings]]
+    - [[#section-5a][Section 5a]]
+      - [[#section-5a1][Section 5a1]]
+      - [[#section-5a2][Section 5a2]]
+    - [[#section-5b][Section 5b]]
+      - [[#section-5b1][Section 5b1]]
+    - [[#section-5c][Section 5c]]
+      - [[#section-5c1][Section 5c1]]
+        - [[#section-5c1a][Section 5c1a]]
+        - [[#section-5c1b][Section 5c1b]]
   - [[#appendices][Appendices]]
     - [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
     - [[#appendix-b][Appendix B]]
@@ -163,6 +173,85 @@ This section is included in the chapter's TOC.
 
 This subsection is excluded.
 
+** Chapter 5: Local settings
+:PROPERTIES:
+:TOC:      :include descendants :depth 2
+:END:
+
+This chapter's TOC includes descendants only two levels deep by default.  However, Section 5b sets =:depth 3= (relative to itself) in order to include deeper descendants in its own section TOC.  Normally this depth setting would propagate up to the Chapter 5 TOC and cause, e.g. Section 5b1a to be included in the Chapter 5 TOC.  However, Section 5b also sets =:local depth=, which prevents its depth setting from propagating up the tree, so the sections 5b1a and 5b1b are excluded from the Chapter 5 TOC.
+
+One could also set =:force depth= in the chapter 5 TOC to accomplish the same thing.  However, doing so would force the depth setting for /all/ subtrees in its TOC.  Instead, by using =:local depth= on Section 5b, we allow Section 5c to set =:depth 3=, which /is/ allowed to propagate up to the chapter 5 TOC.  So notice that, although Sections 5b and 5c are structurally identical, the way they are shown in the Chapter 5 TOC differs, because Section 5b sets =:local depth= while Section 5c does not.
+
+If this seems complicated, perhaps it is, but it's optional power that's available when needed.
+
+:CONTENTS:
+- [[#section-5a][Section 5a]]
+  - [[#section-5a1][Section 5a1]]
+  - [[#section-5a2][Section 5a2]]
+- [[#section-5b][Section 5b]]
+  - [[#section-5b1][Section 5b1]]
+- [[#section-5c][Section 5c]]
+  - [[#section-5c1][Section 5c1]]
+    - [[#section-5c1a][Section 5c1a]]
+    - [[#section-5c1b][Section 5c1b]]
+:END:
+
+*** Section 5a
+
+This section is included in the Chapter 5 TOC.
+
+**** Section 5a1
+
+This section is included in the Chapter 5 TOC.
+
+**** Section 5a2
+
+This section is included in the Chapter 5 TOC.
+
+*** Section 5b
+:PROPERTIES:
+:TOC:      :include descendants :depth 3 :local depth
+:END:
+:CONTENTS:
+- [[#section-5b1][Section 5b1]]
+  - [[#section-5b1a][Section 5b1a]]
+  - [[#section-5b1b][Section 5b1b]]
+:END:
+
+**** Section 5b1
+
+This section is included in the Chapter 5 TOC.
+
+***** Section 5b1a
+
+This section is *not* included in the Chapter 5 TOC.
+
+***** Section 5b1b
+
+This section is *not* included in the Chapter 5 TOC.
+
+*** Section 5c
+:PROPERTIES:
+:TOC:      :include descendants :depth 5
+:END:
+:CONTENTS:
+- [[#section-5c1][Section 5c1]]
+  - [[#section-5c1a][Section 5c1a]]
+  - [[#section-5c1b][Section 5c1b]]
+:END:
+
+**** Section 5c1
+
+This section is included in the Chapter 5 TOC.
+
+***** Section 5c1a
+
+This section is included in the Chapter 5 TOC.
+
+***** Section 5c1b
+
+This section is included in the Chapter 5 TOC.
+
 ** Appendices
 :PROPERTIES:
 :TOC:      :include descendants :depth 1
@@ -208,6 +297,18 @@ This comprehensive TOC uses =:include all :force (depth ignore)= to force all he
       - [[#subsection-4a1][Subsection 4a1]]
     - [[#section-4b][Section 4b]]
       - [[#subsection-4b1][Subsection 4b1]]
+  - [[#chapter-5-local-settings][Chapter 5: Local settings]]
+    - [[#section-5a][Section 5a]]
+      - [[#section-5a1][Section 5a1]]
+      - [[#section-5a2][Section 5a2]]
+    - [[#section-5b][Section 5b]]
+      - [[#section-5b1][Section 5b1]]
+        - [[#section-5b1a][Section 5b1a]]
+        - [[#section-5b1b][Section 5b1b]]
+    - [[#section-5c][Section 5c]]
+      - [[#section-5c1][Section 5c1]]
+        - [[#section-5c1a][Section 5c1a]]
+        - [[#section-5c1b][Section 5c1b]]
   - [[#appendices][Appendices]]
     - [[#appendix-a-comprehensive-toc][Appendix A: Comprehensive TOC]]
     - [[#appendix-b][Appendix B]]
