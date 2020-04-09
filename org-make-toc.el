@@ -201,6 +201,8 @@ with the destination of the published file."
                (cl-loop for element = (org-element-at-point)
                         for pos = (pcase-exhaustive element
                                     (`(,(or 'planning 'property-drawer 'drawer) . ,_)
+                                     (when (equal pos (org-element-property :end element))
+                                       (cl-return (point)))
                                      (org-element-property :end element))
                                     (`(headline . ,_)
                                      (cl-return (or (org-element-property :contents-begin element)
