@@ -9,14 +9,14 @@
 
 *** TODO Release 0.5
 
-+  [ ] Check comment TODOs (using =magit-todos=).
-+  [ ] Check issues.
-+  [ ] Check plans (in this file).
-+  [ ] Check linters.
-+  [ ] Check tests.
-+  [ ] Update version numbers in file headers.
-     -  [ ] org-make-toc.el
-+  [ ] Update changelog in =README.org=.
++  [X] Check comment TODOs (using =magit-todos=).
++  [X] Check issues.
++  [X] Check plans (in this file).
++  [X] Check linters.
++  [X] Check tests.
++  [X] Update version numbers in file headers.
+     -  [X] org-make-toc.el
++  [X] Update changelog in =README.org=.
 +  [ ] Tag and sign new version (using Magit's =t r=).
 +  [ ] Push =master=.
 +  [ ] Push tags.
