@@ -5,7 +5,7 @@
 ;; Author: Adam Porter <adam@alphapapa.net>
 ;; URL: http://github.com/alphapapa/org-make-toc
 ;; Version: 0.5-pre
-;; Package-Requires: ((emacs "25.1") (dash "2.12") (s "1.10.0") (org "9.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.12") (s "1.10.0") (org "9.0"))
 ;; Keywords: Org, convenience
 
 ;;; Commentary:
@@ -132,6 +132,7 @@
 
 (require 'cl-lib)
 (require 'org)
+(require 'seq)
 (require 'subr-x)
 
 (require 'dash)
@@ -157,6 +158,10 @@ with the destination of the published file."
   :type '(choice (const :tag "GitHub-compatible" org-make-toc--link-entry-github)
                  (const :tag "Org-compatible" org-make-toc--link-entry-org)
                  (function :tag "Custom function")))
+
+(defcustom org-make-toc-exclude-tags '("noexport")
+  "Entries with any of these tags are excluded from TOCs."
+  :type '(repeat string))
 
 ;;;; Commands
 
@@ -338,7 +343,7 @@ with the destination of the published file."
                      (unless (or (and (not (arg-has force 'ignore))
                                       (entry-match :ignore 'this))
                                  ;; TODO: Make this exclusion more flexible.
-                                 (member "noexport" (org-get-tags))
+                                 (seq-intersection org-make-toc-exclude-tags (org-get-tags))
                                  (string-match-p (rx bos "COMMENT" (or blank eos))
                                                  (nth 4 (org-heading-components))))
                        (funcall org-make-toc-link-type-fn)))
