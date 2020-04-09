@@ -339,8 +339,10 @@ with the destination of the published file."
               (entry (&key force)
                      (unless (or (and (not (arg-has force 'ignore))
                                       (entry-match :ignore 'this))
-                                 ;; TODO: Make this exclusion more flexible.
+                                 ;; TODO: Add configurable predicate list to exclude entries.
                                  (seq-intersection org-make-toc-exclude-tags (org-get-tags))
+                                 ;; NOTE: The "COMMENT" keyword is not returned as the to-do keyword
+                                 ;; by `org-heading-components', so it can't be tested as a keyword.
                                  (string-match-p (rx bos "COMMENT" (or blank eos))
                                                  (nth 4 (org-heading-components))))
                        (funcall org-make-toc-link-type-fn)))
