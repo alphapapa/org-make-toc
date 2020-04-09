@@ -271,10 +271,15 @@ with the destination of the published file."
                  :local (completing-read-multiple "Tree-local settings (one or more): "
                                                   '(("nothing" . nil) ("depth" . depth))
                                                   nil t (property :force)))))
-      (substring (format "%s" (cl-loop for (property value) on props by #'cddr
-                                       unless (member value '("" "nil" nil))
-                                       append (list property value)))
-                 1 -1))))
+      (when (cl-loop for property in '(:include :depth :force :ignore :local)
+                     thereis (pcase (plist-get props property)
+                               ((or "" "nil" (\` nil)) nil)
+                               (_ t)))
+        ;; Only return a string if at least one property is set.
+        (substring (format "%s" (cl-loop for (property value) on props by #'cddr
+                                         unless (member value '("" "nil" nil))
+                                         append (list property value)))
+                   1 -1)))))
 
 (defun org-make-toc--next-toc-position ()
   "Return position of next TOC, or nil."
