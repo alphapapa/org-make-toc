@@ -232,7 +232,7 @@ This section is *not* included in the Chapter 5 TOC.
 
 *** Section 5c
 :PROPERTIES:
-:TOC:      :include descendants :depth 5
+:TOC:      :include descendants :depth 3
 :END:
 :CONTENTS:
 - [[#section-5c1][Section 5c1]]
