@@ -192,30 +192,8 @@ with the destination of the published file."
 (defun org-make-toc-insert ()
   "Insert \":CONTENTS:\" drawer at point."
   (interactive)
-  (cl-labels ((contents-begin
-               ()
-               ;; Skip to contents-begin first.
-               (when (eq 'headline (org-element-type (org-element-at-point)))
-                 (goto-char (or (org-element-property :contents-begin (org-element-at-point))
-                                (1- (org-element-property :end (org-element-at-point))))))
-               (cl-loop for element = (org-element-at-point)
-                        for pos = (pcase-exhaustive element
-                                    (`(,(or 'planning 'property-drawer 'drawer) . ,_)
-                                     (when (equal pos (org-element-property :end element))
-                                       (cl-return (point)))
-                                     (org-element-property :end element))
-                                    (`(headline . ,_)
-                                     (cl-return (or (org-element-property :contents-begin element)
-                                                    (org-element-property :end element))))
-                                    (_
-                                     (cl-return (point))))
-                        while pos
-                        do (goto-char pos)
-                        finally return (point))))
-    (save-excursion
-      (goto-char (contents-begin))
-      (call-interactively #'org-make-toc-set)
-      (org-insert-drawer nil "CONTENTS"))))
+  (call-interactively #'org-make-toc-set)
+  (org-insert-drawer nil "CONTENTS"))
 
 ;;;###autoload
 (defun org-make-toc-set (properties)
