@@ -132,6 +132,7 @@
 
 (require 'cl-lib)
 (require 'org)
+(require 'rx)
 (require 'seq)
 (require 'subr-x)
 
