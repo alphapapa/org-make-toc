@@ -385,8 +385,7 @@ with the destination of the published file."
 
 (defun org-make-toc--link-entry-github ()
   "Return text for ENTRY converted to GitHub style link."
-  ;; FIXME: org-get-heading takes more arguments in newer Orgs.
-  (-when-let* ((title (org-get-heading t t))
+  (-when-let* ((title (nth 4 (org-heading-components)))
                (target (--> title
                             org-link-display-format
                             (downcase it)
@@ -401,7 +400,7 @@ with the destination of the published file."
 (defun org-make-toc--link-entry-org ()
   "Return text for ENTRY converted to regular Org link."
   ;; FIXME: There must be a built-in function to do this, although it might be in `org-export'.
-  (-when-let* ((title (org-get-heading t t))
+  (-when-let* ((title (nth 4 (org-heading-components)))
                (filename (if org-make-toc-filename-prefix
                              (concat "file:" (file-name-nondirectory (buffer-file-name)) "::")
                            "")))
