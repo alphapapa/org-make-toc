@@ -1,4 +1,29 @@
+#+PROPERTY: logging nil
+#+TODO: TODO UNDERWAY | DONE CANCELED
+#+TYP_TODO: MAYBE | CANCELED
+#+TYP_TODO: TEMPLATE
 
+* Plans
+
+** UNDERWAY 0.5
+
+*** TODO Release 0.5
+
++  [ ] Check comment TODOs (using =magit-todos=).
++  [ ] Check issues.
++  [ ] Check plans (in this file).
++  [ ] Check linters.
++  [ ] Check tests.
++  [ ] Update version numbers in file headers.
+     -  [ ] org-make-toc.el
++  [ ] Update changelog in =README.org=.
++  [ ] Tag and sign new version (using Magit's =t r=).
++  [ ] Push =master=.
++  [ ] Push tags.
++  [ ] Post-release changes:
+     -  [ ] Bump version numbers to n+1-pre:
+          +  [ ] org-make-toc.el
+          +  [ ] README.org
 
 * Notes
 
@@ -316,3 +341,23 @@ CLOSED: [2017-08-02 Wed 04:16]
                                   tree)))
       zipper))
 #+END_SRC
+
+* Checklists
+
+** TEMPLATE Release
+
++  [ ] Check comment TODOs (using =magit-todos=).
++  [ ] Check issues.
++  [ ] Check plans (in this file).
++  [ ] Check linters.
++  [ ] Check tests.
++  [ ] Update version numbers in file headers.
+     -  [ ] org-make-toc.el
++  [ ] Update changelog in =README.org=.
++  [ ] Tag and sign new version (using Magit's =t r=).
++  [ ] Push =master=.
++  [ ] Push tags.
++  [ ] Post-release changes:
+     -  [ ] Bump version numbers to n+1-pre:
+          +  [ ] org-make-toc.el
+          +  [ ] README.org
