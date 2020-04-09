@@ -214,8 +214,8 @@ with the destination of the published file."
                         finally return (point))))
     (save-excursion
       (goto-char (contents-begin))
-      (org-insert-drawer nil "CONTENTS")
-      (call-interactively #'org-make-toc-set))))
+      (call-interactively #'org-make-toc-set)
+      (org-insert-drawer nil "CONTENTS"))))
 
 ;;;###autoload
 (defun org-make-toc-set (properties)
