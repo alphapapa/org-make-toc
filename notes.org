@@ -20,10 +20,10 @@
 +  [X] Tag and sign new version (using Magit's =t r=).
 +  [X] Push =master=.
 +  [X] Push tags.
-+  [ ] Post-release changes:
-     -  [ ] Bump version numbers to n+1-pre:
-          +  [ ] org-make-toc.el
-          +  [ ] README.org
++  [X] Post-release changes:
+     -  [X] Bump version numbers to n+1-pre:
+          +  [X] org-make-toc.el
+          +  [X] README.org
 
 * Notes
 

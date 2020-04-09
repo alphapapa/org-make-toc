@@ -121,6 +121,10 @@ Unfortunately, due to the way GitHub renders Org documents and links, it's not p
 :TOC:      :depth 0
 :END:
 
+** 0.6-pre
+
+Nothing new yet.
+
 ** 0.5
 
 This version is a major rewrite that requires reconfiguring existing TOCs.  Please see the usage instructions anew.  Users who don't want to convert to 0.5-style TOCs may continue using version 0.4.
