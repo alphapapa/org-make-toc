@@ -164,6 +164,10 @@ with the destination of the published file."
   "Entries with any of these tags are excluded from TOCs."
   :type '(repeat string))
 
+(defvar org-make-toc-contents-drawer-start-regexp
+  (rx bol (0+ blank) ":CONTENTS:" (0+ blank) eol)
+  "Regular expression for the beginning of a :CONTENTS: drawer")
+
 ;;;; Commands
 
 ;;;###autoload
@@ -263,7 +267,7 @@ with the destination of the published file."
 (defun org-make-toc--next-toc-position ()
   "Return position of next TOC, or nil."
   (save-excursion
-    (when (and (re-search-forward (rx bol ":CONTENTS:" (0+ blank) eol) nil t)
+    (when (and (re-search-forward org-make-toc-contents-drawer-start-regexp nil t)
                (save-excursion
                  (beginning-of-line)
                  (looking-at-p org-drawer-regexp)))
@@ -404,13 +408,13 @@ Replaces contents of :CONTENTS: drawer."
     (org-back-to-heading 'invisible-ok)
     (let* ((end (org-entry-end-position))
            contents-beg contents-end)
-      (when (and (re-search-forward (rx bol ":CONTENTS:" (0+ blank) eol) end t)
+      (when (and (re-search-forward org-make-toc-contents-drawer-start-regexp end t)
                  (save-excursion
                    (beginning-of-line)
                    (looking-at-p org-drawer-regexp)))
         ;; Set the end first, then search back and skip any ":TOC:" property line in the drawer.
         (setf contents-end (save-excursion
-                             (when (re-search-forward (rx bol ":END:" (0+ blank) eol) end)
+                             (when (re-search-forward (rx bol (0+ blank) ":END:" (0+ blank) eol) end)
                                (match-beginning 0)))
               contents-beg (progn
                              (when (save-excursion
