@@ -164,7 +164,7 @@ with the destination of the published file."
   "Entries with any of these tags are excluded from TOCs."
   :type '(repeat string))
 
-(defvar org-make-toc-contents-drawer-start-regexp
+(defconst org-make-toc-contents-drawer-start-regexp
   (rx bol (0+ blank) ":CONTENTS:" (0+ blank) eol)
   "Regular expression for the beginning of a :CONTENTS: drawer")
 
