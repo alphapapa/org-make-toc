@@ -116,6 +116,12 @@ Or, you may activate it in all Org buffers like this:
 
 Unfortunately, due to the way GitHub renders Org documents and links, it's not possible to make links which work in both Org itself and the GitHub-rendered HTML.  See [[https://github.com/wallyqs/org-ruby/issues/11][org-ruby issue #11]].  =toc-org= provides a workaround using =org-link-translation-function= to change how Org handles =#heading=-style links, but, of course, that breaks compatibility with such links that aren't intended to be rendered by GitHub, so it must be manually enabled in each document as appropriate.
 
+As an alternative this approach, this package can optionally insert a =CUSTOM_ID= property for each entry when running =org-make-toc= so that links will work in Org as well:
+
+#+BEGIN_SRC elisp
+  (setq org-make-toc-insert-custom-ids t)
+#+END_SRC
+
 * Changelog
 :PROPERTIES:
 :TOC:      :depth 0
