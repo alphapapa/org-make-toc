@@ -471,6 +471,7 @@ created."
 (define-minor-mode org-make-toc-mode
   "Add the `org-make-toc' command to the `before-save-hook' in the current Org buffer.
 With prefix argument ARG, turn on if positive, otherwise off."
+  :lighter " MakeToC"
   :init-value nil
   (unless (derived-mode-p 'org-mode)
     (user-error "Not an Org buffer"))
