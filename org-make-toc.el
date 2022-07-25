@@ -4,7 +4,7 @@
 
 ;; Author: Adam Porter <adam@alphapapa.net>
 ;; URL: http://github.com/alphapapa/org-make-toc
-;; Version: 0.5
+;; Version: 0.6
 ;; Package-Requires: ((emacs "26.1") (dash "2.12") (s "1.10.0") (org "9.0"))
 ;; Keywords: Org, convenience
 
@@ -163,6 +163,11 @@ with the destination of the published file."
 (defcustom org-make-toc-exclude-tags '("noexport")
   "Entries with any of these tags are excluded from TOCs."
   :type '(repeat string))
+
+(defcustom org-make-toc-auto-file-list (list)
+  "A list of files that should automatically enable `org-make-toc-mode'"
+  :type '(repeat (file :must-match t))
+  :group 'org-make-toc)
 
 ;;;; Commands
 
@@ -464,6 +469,16 @@ created."
                                   until (eobp)
                                   do (forward-until #'visible-p))))
         (erase-buffer)))))
+
+;;;###autoload
+(defun org-make-toc-auto-toc ()
+  "Activate `org-make-toc-mode' for files in `org-make-toc-auto-file-list'."
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (when (member (buffer-file-name)
+                            (mapcar 'expand-file-name
+                                    org-make-toc-auto-file-list))
+                (org-make-toc-mode 1)))))
 
 ;;;; Mode
 
