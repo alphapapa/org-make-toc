@@ -516,8 +516,9 @@ With prefix argument ARG, turn on if positive, otherwise off."
   :init-value nil
   (unless (derived-mode-p 'org-mode)
     (user-error "Not an Org buffer"))
-  (funcall (if org-make-toc-mode #'add-hook #'remove-hook)
-           'before-save-hook #'org-make-toc)
+  (if org-make-toc-mode
+      (add-hook 'before-save-hook #'org-make-toc nil t)
+    (remove-hook 'before-save-hook #'org-make-toc t))
   (message (format "org-make-toc-mode %s."
                    (if org-make-toc-mode
                        "enabled"
