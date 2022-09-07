@@ -114,7 +114,16 @@ Or, you may activate it in all Org buffers like this:
 
 ** Known Issues
 
-Unfortunately, due to the way GitHub renders Org documents and links, it's not possible to make links which work in both Org itself and the GitHub-rendered HTML.  See [[https://github.com/wallyqs/org-ruby/issues/11][org-ruby issue #11]].  =toc-org= provides a workaround using =org-link-translation-function= to change how Org handles =#heading=-style links, but, of course, that breaks compatibility with such links that aren't intended to be rendered by GitHub, so it must be manually enabled in each document as appropriate.
+Unfortunately, due to the way GitHub renders Org documents and links,
+it's not possible to make links which work in both Org itself and the
+GitHub-rendered HTML.  See [[https://github.com/wallyqs/org-ruby/issues/11][org-ruby issue #11]].  =toc-org= provides a
+workaround using =org-link-translation-function= to change how Org
+handles =#heading=-style links, but, of course, that breaks
+compatibility with such links that aren't intended to be rendered by
+GitHub, so it must be manually enabled in each document as
+appropriate.  For many cases, a "good enough"  workaround is to just
+mark the heading that contains the table of contents with a =:noexport:=
+modifier.
 
 * Changelog
 :PROPERTIES:
