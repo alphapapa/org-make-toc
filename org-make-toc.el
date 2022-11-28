@@ -329,8 +329,11 @@ with the destination of the published file."
                                  (seq-intersection org-make-toc-exclude-tags (org-get-tags))
                                  ;; NOTE: The "COMMENT" keyword is not returned as the to-do keyword
                                  ;; by `org-heading-components', so it can't be tested as a keyword.
-                                 (when-let ((headline-text ((nth 4 (org-heading-components)))))
-                                   (string-match-p (rx bos "COMMENT" (or blank eos)) headline-text)))
+                                 (if-let ((headline-text (nth 4 (org-heading-components))))
+                                     (string-match-p (rx bos "COMMENT" (or blank eos)) headline-text)
+                                   (delay-warning 'org-make-toc
+                                                  (format "Empty headline on line %s"
+                                                          (line-number-at-pos (point) t)))))
                        (funcall org-make-toc-link-type-fn)))
               (entry-match (property value)
                            (when-let* ((found-value (entry-property property)))
