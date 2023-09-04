@@ -112,15 +112,9 @@ Or, you may activate it in all Org buffers like this:
   (add-hook 'org-mode-hook #'org-make-toc-mode)
 #+END_SRC
 
-** Known Issues
+** Making links work in both Emacs/Org and on GitHub
 
-Unfortunately, due to the way GitHub renders Org documents and links, it's not possible to make links which work in both Org itself and the GitHub-rendered HTML.  See [[https://github.com/wallyqs/org-ruby/issues/11][org-ruby issue #11]].  =toc-org= provides a workaround using =org-link-translation-function= to change how Org handles =#heading=-style links, but, of course, that breaks compatibility with such links that aren't intended to be rendered by GitHub, so it must be manually enabled in each document as appropriate.
-
-As an alternative this approach, this package can optionally insert a =CUSTOM_ID= property for each entry when running =org-make-toc= so that links will work in Org as well:
-
-#+BEGIN_SRC elisp
-  (setq org-make-toc-insert-custom-ids t)
-#+END_SRC
+Because of the way GitHub renders Org documents and links, it's not possible to make links which work in both Org itself and the GitHub-rendered HTML unless headings have ~CUSTOM_ID~ properties.  If the option ~org-make-toc-insert-custom-ids~ is enabled, this package will automatically add them as needed.
 
 * Changelog
 :PROPERTIES:
@@ -128,6 +122,10 @@ As an alternative this approach, this package can optionally insert a =CUSTOM_ID
 :END:
 
 ** 0.6-pre
+
+*Additions*
+
++ Option ~org-make-toc-insert-custom-ids~ automatically adds ~CUSTOM_ID~ properties to headings so links can work on both GitHub-rendered Org files and in Emacs.  (Thanks to [[https://github.com/noctuid][Fox Kiester]].)
 
 *Fixes*
 
