@@ -160,6 +160,14 @@ with the destination of the published file."
                  (const :tag "Org-compatible" org-make-toc--link-entry-org)
                  (function :tag "Custom function")))
 
+(defcustom org-make-toc-insert-custom-ids nil
+  "Add \"CUSTOM_ID\" properties to headings when using GitHub-compatible links.
+When non-nil and using the default `org-make-toc-link-type-fn' to
+generate GitHub-compatible links, automatically insert a
+\"CUSTOM_ID\" property for each entry.  This will allow links to
+also work in `org-mode' in Emacs."
+  :type 'boolean)
+
 (defcustom org-make-toc-exclude-tags '("noexport")
   "Entries with any of these tags are excluded from TOCs."
   :type '(repeat string))
@@ -388,6 +396,10 @@ with the destination of the published file."
                (filename (if org-make-toc-filename-prefix
                              (file-name-nondirectory (buffer-file-name))
                            "")))
+    (when org-make-toc-insert-custom-ids
+      ;; FIXME: Disambiguate the `target' in case multiple headings in the document have the same
+      ;; name (e.g. in a large document, there could be multiple sub-ToCs, each called "Contents").
+      (org-set-property "CUSTOM_ID" target))
     (org-make-link-string (concat filename "#" target)
                           (org-make-toc--visible-text title))))
 
