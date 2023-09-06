@@ -176,6 +176,10 @@ also work in `org-mode' in Emacs."
   (rx bol (0+ blank) ":CONTENTS:" (0+ blank) eol)
   "Regular expression for the beginning of a :CONTENTS: drawer")
 
+(defvar-local org-make-toc-disambiguations (make-hash-table :test #'equal)
+  ;; FIXME: Avoid making this table unconditionally; initialize it when needed.
+  "Used to disambiguate heading IDs when using `org-make-toc-insert-custom-ids'.")
+
 ;;;; Commands
 
 ;;;###autoload
@@ -387,7 +391,7 @@ also work in `org-mode' in Emacs."
 
 (defun org-make-toc--link-entry-github ()
   "Return text for ENTRY converted to GitHub style link."
-  (-when-let* ((title (nth 4 (org-heading-components)))
+  (-when-let* ((title (org-entry-get nil "ITEM"))
                (target (--> title
                             org-link-display-format
                             (downcase it)
@@ -399,9 +403,22 @@ also work in `org-mode' in Emacs."
     (when org-make-toc-insert-custom-ids
       ;; FIXME: Disambiguate the `target' in case multiple headings in the document have the same
       ;; name (e.g. in a large document, there could be multiple sub-ToCs, each called "Contents").
+      (setf target (org-make-toc--disambiguated org-make-toc-disambiguations target))
       (org-set-property "CUSTOM_ID" target))
     (org-make-link-string (concat filename "#" target)
-                          (org-make-toc--visible-text title))))
+                          (org-sort-remove-invisible title))))
+
+(defun org-make-toc--disambiguated (table string)
+  "Return STRING disambiguated in TABLE."
+  (cl-labels ((inc-suffix (string)
+                (if (string-match (rx "-" (group (1+ digit)) eos) string)
+                    (replace-match (number-to-string (1+ (string-to-number (match-string 1 string))))
+                                   t nil string 1)
+                  (concat string "-1"))))
+    (while (gethash string table)
+      (setf string (inc-suffix string)))
+    (setf (gethash string table) t)
+    string))
 
 (defun org-make-toc--link-entry-org ()
   "Return text for ENTRY converted to regular Org link."
@@ -411,7 +428,7 @@ also work in `org-mode' in Emacs."
                              (concat "file:" (file-name-nondirectory (buffer-file-name)) "::")
                            "")))
     (org-make-link-string (concat filename title)
-                          (org-make-toc--visible-text title))))
+                          (org-sort-remove-invisible title))))
 
 (defun org-make-toc--replace-entry-contents (contents)
   "Replace the contents of TOC in entry at point with CONTENTS.
