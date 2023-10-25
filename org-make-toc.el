@@ -176,12 +176,16 @@ also work in `org-mode' in Emacs."
   (rx bol (0+ blank) ":CONTENTS:" (0+ blank) eol)
   "Regular expression for the beginning of a :CONTENTS: drawer")
 
+(defvar-local org-make-toc-disambiguations (make-hash-table :test #'equal)
+  "Used to disambiguate custom IDs.")
+
 ;;;; Commands
 
 ;;;###autoload
 (defun org-make-toc ()
   "Make or update table of contents in current buffer."
   (interactive)
+  (clrhash org-make-toc-disambiguations)
   (save-excursion
     (goto-char (point-min))
     (cl-loop with made-toc
@@ -385,6 +389,21 @@ also work in `org-mode' in Emacs."
          (--map (tree it 0))
          -flatten (s-join "\n"))))
 
+(defun org-make-toc--disambiguate (string)
+  "Return STRING having been disambiguated.
+Uses hash table `org-make-toc-disambiguations'."
+  (if (not (gethash string org-make-toc-disambiguations))
+      (progn
+        (setf (gethash string org-make-toc-disambiguations) t)
+        string)
+    (cl-loop for i from 0 to 1000
+             do (when (= 1000 i)
+                  (error "Tried to disambiguate %s 1000 times" string))
+             for new-string = (format "%s-%s" string i)
+             if (not (gethash new-string org-make-toc-disambiguations))
+             do (puthash new-string t org-make-toc-disambiguations)
+             and return new-string)))
+
 (defun org-make-toc--link-entry-github ()
   "Return text for ENTRY converted to GitHub style link."
   (-when-let* ((title (org-link-display-format (org-entry-get nil "ITEM")))
@@ -397,8 +416,7 @@ also work in `org-mode' in Emacs."
                              (file-name-nondirectory (buffer-file-name))
                            "")))
     (when org-make-toc-insert-custom-ids
-      ;; FIXME: Disambiguate the `target' in case multiple headings in the document have the same
-      ;; name (e.g. in a large document, there could be multiple sub-ToCs, each called "Contents").
+      (setf target (org-make-toc--disambiguate target))
       (org-set-property "CUSTOM_ID" target))
     (org-make-link-string (concat filename "#" target)
                           (org-make-toc--visible-text title))))
