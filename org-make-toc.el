@@ -387,7 +387,7 @@ also work in `org-mode' in Emacs."
 
 (defun org-make-toc--link-entry-github ()
   "Return text for ENTRY converted to GitHub style link."
-  (-when-let* ((title (nth 4 (org-heading-components)))
+  (-when-let* ((title (org-link-display-format (org-entry-get nil "ITEM")))
                (target (--> title
                             org-link-display-format
                             (downcase it)
@@ -406,7 +406,7 @@ also work in `org-mode' in Emacs."
 (defun org-make-toc--link-entry-org ()
   "Return text for ENTRY converted to regular Org link."
   ;; FIXME: There must be a built-in function to do this, although it might be in `org-export'.
-  (-when-let* ((title (nth 4 (org-heading-components)))
+  (-when-let* ((title (org-link-display-format (org-entry-get nil "ITEM")))
                (filename (if org-make-toc-filename-prefix
                              (concat "file:" (file-name-nondirectory (buffer-file-name)) "::")
                            "")))
