@@ -174,7 +174,7 @@ also work in `org-mode' in Emacs."
 
 (defconst org-make-toc-contents-drawer-start-regexp
   (rx bol (0+ blank) ":CONTENTS:" (0+ blank) eol)
-  "Regular expression for the beginning of a :CONTENTS: drawer")
+  "Regular expression for the beginning of a :CONTENTS: drawer.")
 
 (defvar-local org-make-toc-disambiguations nil
   "Used to disambiguate custom IDs.")
@@ -458,7 +458,7 @@ Replaces contents of :CONTENTS: drawer."
                                      (forward-line 1)
                                      (looking-at-p (rx bol ":TOC:" (0+ blank) (group (1+ nonl)))))
                                (forward-line 1))
-                             (point-at-eol))
+                             (pos-eol))
               contents (concat "\n" (string-trim contents) "\n")
               (buffer-substring contents-beg contents-end) contents)))))
 
@@ -510,7 +510,7 @@ created."
 
 ;;;###autoload
 (define-minor-mode org-make-toc-mode
-  "Add the `org-make-toc' command to the `before-save-hook' in the current Org buffer.
+  "Add `org-make-toc' to the `before-save-hook' in the current Org buffer.
 With prefix argument ARG, turn on if positive, otherwise off."
   :init-value nil
   (unless (derived-mode-p 'org-mode)
