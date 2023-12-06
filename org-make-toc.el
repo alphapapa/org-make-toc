@@ -223,29 +223,29 @@ also work in `org-mode' in Emacs."
 (defun org-make-toc--complete-toc-properties ()
   "Return TOC properties string read with completion."
   (cl-labels ((property (property)
-                        (--> (org-entry-get (point) "TOC")
-                             (concat "(" it ")") (read it)
-                             (plist-get it property)
-                             (if it
-                                 (prin1-to-string it)
-                               "")))
+                (--> (org-entry-get (point) "TOC")
+                     (concat "(" it ")") (read it)
+                     (plist-get it property)
+                     (if it
+                         (prin1-to-string it)
+                       "")))
               (read-number (prompt &optional initial-input)
-                           ;; The default `read-number' only accepts a number, and
-                           ;; we need to allow the user to input nothing.  But
-                           ;; using `read-string' with `string-to-number' returns
-                           ;; 0 for the empty string, so we use this instead.
-                           (let ((input (read-string prompt initial-input)))
-                             (pcase input
-                               ((rx bos (1+ digit) eos)
-                                (string-to-number input))
-                               ((rx bos (0+ blank) eos) "")
-                               (_ (read-number prompt initial-input)))))
+                ;; The default `read-number' only accepts a number, and
+                ;; we need to allow the user to input nothing.  But
+                ;; using `read-string' with `string-to-number' returns
+                ;; 0 for the empty string, so we use this instead.
+                (let ((input (read-string prompt initial-input)))
+                  (pcase input
+                    ((rx bos (1+ digit) eos)
+                     (string-to-number input))
+                    ((rx bos (0+ blank) eos) "")
+                    (_ (read-number prompt initial-input)))))
               (completing-read-description
-               (prompt collection &optional predicate require-match
-                       initial-input hist def inherit-input-method)
-               (let ((choice (completing-read prompt collection predicate require-match
-                                              initial-input hist def inherit-input-method)))
-                 (alist-get choice collection nil nil #'equal)))
+                (prompt collection &optional predicate require-match
+                        initial-input hist def inherit-input-method)
+                (let ((choice (completing-read prompt collection predicate require-match
+                                               initial-input hist def inherit-input-method)))
+                  (alist-get choice collection nil nil #'equal)))
               ;; TODO: Version of `completing-read-multiple' that works like that.  Sigh.
               )
     (let ((props
@@ -294,67 +294,67 @@ also work in `org-mode' in Emacs."
 (defun org-make-toc--toc-at-point ()
   "Return TOC tree for entry at point."
   (cl-labels ((descendants (&key depth force)
-                           (when (and (or (null depth) (> depth 0))
-                                      (children-p))
-                             (save-excursion
-                               (save-restriction
-                                 (org-narrow-to-subtree)
-                                 (outline-next-heading)
-                                 (cl-loop collect (cons (entry :force force)
-                                                        (unless (entry-match :ignore 'descendants)
-                                                          (descendants :depth (or (unless (or (arg-has force 'depth)
-                                                                                              (entry-match :local 'depth))
-                                                                                    (entry-property :depth))
-                                                                                  (when depth
-                                                                                    (1- depth)))
-                                                                       :force force)))
-                                          while (next-sibling))))))
+                (when (and (or (null depth) (> depth 0))
+                           (children-p))
+                  (save-excursion
+                    (save-restriction
+                      (org-narrow-to-subtree)
+                      (outline-next-heading)
+                      (cl-loop collect (cons (entry :force force)
+                                             (unless (entry-match :ignore 'descendants)
+                                               (descendants :depth (or (unless (or (arg-has force 'depth)
+                                                                                   (entry-match :local 'depth))
+                                                                         (entry-property :depth))
+                                                                       (when depth
+                                                                         (1- depth)))
+                                                            :force force)))
+                               while (next-sibling))))))
               (siblings (&key depth force)
-                        (save-excursion
-                          (save-restriction
-                            (when (org-up-heading-safe)
-                              (org-narrow-to-subtree)
-                              (outline-next-heading)
-                              (outline-next-heading))
-                            (cl-loop collect (cons (entry :force force)
-                                                   (unless (entry-match :ignore 'descendants)
-                                                     (descendants :depth (or (unless (or (arg-has force 'depth)
-                                                                                         (entry-match :local 'depth))
-                                                                               (entry-property :depth))
-                                                                             (when depth
-                                                                               (1- depth)))
-                                                                  :force force)))
-                                     while (next-sibling)))))
+                (save-excursion
+                  (save-restriction
+                    (when (org-up-heading-safe)
+                      (org-narrow-to-subtree)
+                      (outline-next-heading)
+                      (outline-next-heading))
+                    (cl-loop collect (cons (entry :force force)
+                                           (unless (entry-match :ignore 'descendants)
+                                             (descendants :depth (or (unless (or (arg-has force 'depth)
+                                                                                 (entry-match :local 'depth))
+                                                                       (entry-property :depth))
+                                                                     (when depth
+                                                                       (1- depth)))
+                                                          :force force)))
+                             while (next-sibling)))))
               (children-p ()
-                          (let ((level (org-current-level)))
-                            (save-excursion
-                              (when (outline-next-heading)
-                                (> (org-current-level) level)))))
+                (let ((level (org-current-level)))
+                  (save-excursion
+                    (when (outline-next-heading)
+                      (> (org-current-level) level)))))
               (next-sibling ()
-                            (let ((pos (point)))
-                              (org-forward-heading-same-level 1 'invisible-ok)
-                              (/= pos (point))))
+                (let ((pos (point)))
+                  (org-forward-heading-same-level 1 'invisible-ok)
+                  (/= pos (point))))
               (arg-has (var val)
-                       (or (equal var val)
-                           (and (listp var)
-                                (member val var))))
+                (or (equal var val)
+                    (and (listp var)
+                         (member val var))))
               (entry (&key force)
-                     (unless (or (and (not (arg-has force 'ignore))
-                                      (entry-match :ignore 'this))
-                                 ;; TODO: Add configurable predicate list to exclude entries.
-                                 (seq-intersection org-make-toc-exclude-tags (org-get-tags))
-                                 ;; NOTE: The "COMMENT" keyword is not returned as the to-do keyword
-                                 ;; by `org-heading-components', so it can't be tested as a keyword.
-                                 (string-match-p (rx bos "COMMENT" (or blank eos))
-                                                 (nth 4 (org-heading-components))))
-                       (funcall org-make-toc-link-type-fn)))
+                (unless (or (and (not (arg-has force 'ignore))
+                                 (entry-match :ignore 'this))
+                            ;; TODO: Add configurable predicate list to exclude entries.
+                            (seq-intersection org-make-toc-exclude-tags (org-get-tags))
+                            ;; NOTE: The "COMMENT" keyword is not returned as the to-do keyword
+                            ;; by `org-heading-components', so it can't be tested as a keyword.
+                            (string-match-p (rx bos "COMMENT" (or blank eos))
+                                            (nth 4 (org-heading-components))))
+                  (funcall org-make-toc-link-type-fn)))
               (entry-match (property value)
-                           (when-let* ((found-value (entry-property property)))
-                             (or (equal value found-value)
-                                 (and (listp found-value) (member value found-value)))))
+                (when-let* ((found-value (entry-property property)))
+                  (or (equal value found-value)
+                      (and (listp found-value) (member value found-value)))))
               (entry-property (property)
-                              (plist-get (read (concat "(" (org-entry-get (point) "TOC") ")"))
-                                         property)))
+                (plist-get (read (concat "(" (org-entry-get (point) "TOC") ")"))
+                           property)))
     (save-excursion
       (save-restriction
         (-let* (((&plist :include :depth :force force)
