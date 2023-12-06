@@ -176,8 +176,10 @@ also work in `org-mode' in Emacs."
   (rx bol (0+ blank) ":CONTENTS:" (0+ blank) eol)
   "Regular expression for the beginning of a :CONTENTS: drawer")
 
-(defvar-local org-make-toc-disambiguations (make-hash-table :test #'equal)
+(defvar-local org-make-toc-disambiguations nil
   "Used to disambiguate custom IDs.")
+(defvar-local org-make-toc-ids nil
+  "Maps custom IDs to buffer positions.")
 
 ;;;; Commands
 
@@ -185,25 +187,28 @@ also work in `org-mode' in Emacs."
 (defun org-make-toc ()
   "Make or update table of contents in current buffer."
   (interactive)
-  (clrhash org-make-toc-disambiguations)
-  (save-excursion
-    (goto-char (point-min))
-    (cl-loop with made-toc
-             for pos = (org-make-toc--next-toc-position)
-             while pos
-             do (progn
-                  (goto-char pos)
-                  (when (org-make-toc--update-toc-at-point)
-                    (setq made-toc t)))
-             finally do (unless made-toc
-                          (message "org-make-toc: No TOC node found.")))))
+  (let ((org-make-toc-disambiguations (make-hash-table :test #'equal))
+        (org-make-toc-ids (make-hash-table :test #'equal)))
+    (save-excursion
+      (goto-char (point-min))
+      (cl-loop with made-toc
+               for pos = (org-make-toc--next-toc-position)
+               while pos
+               do (progn
+                    (goto-char pos)
+                    (when (org-make-toc--update-toc-at-point)
+                      (setq made-toc t)))
+               finally do (unless made-toc
+                            (message "org-make-toc: No TOC node found."))))))
 
 ;;;###autoload
 (defun org-make-toc-at-point ()
   "Make or update table of contents at current entry."
   (interactive)
-  (unless (org-make-toc--update-toc-at-point)
-    (user-error "No TOC node found")))
+  (let ((org-make-toc-disambiguations (make-hash-table :test #'equal))
+        (org-make-toc-ids (make-hash-table :test #'equal)))
+    (unless (org-make-toc--update-toc-at-point)
+      (user-error "No TOC node found"))))
 
 ;;;###autoload
 (defun org-make-toc-insert ()
@@ -416,7 +421,9 @@ Uses hash table `org-make-toc-disambiguations'."
                              (file-name-nondirectory (buffer-file-name))
                            "")))
     (when org-make-toc-insert-custom-ids
-      (setf target (org-make-toc--disambiguate target))
+      (setf target (or (gethash pos org-make-toc-ids)
+                       (setf (gethash pos org-make-toc-ids)
+                             (org-make-toc--disambiguate target))))
       (org-set-property "CUSTOM_ID" target))
     (org-make-link-string (concat filename "#" target)
                           (org-make-toc--visible-text title))))
