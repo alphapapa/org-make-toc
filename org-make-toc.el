@@ -352,7 +352,7 @@ also work in `org-mode' in Emacs."
                             ;; by `org-heading-components', so it can't be tested as a keyword.
                             (string-match-p (rx bos "COMMENT" (or blank eos))
                                             (nth 4 (org-heading-components))))
-                  (funcall org-make-toc-link-type-fn)))
+                  (funcall org-make-toc-link-type-fn (point))))
               (entry-match (property value)
                 (when-let* ((found-value (entry-property property)))
                   (or (equal value found-value)
@@ -409,9 +409,9 @@ Uses hash table `org-make-toc-disambiguations'."
              do (puthash new-string t org-make-toc-disambiguations)
              and return new-string)))
 
-(defun org-make-toc--link-entry-github ()
-  "Return text for ENTRY converted to GitHub style link."
-  (-when-let* ((title (org-link-display-format (org-entry-get nil "ITEM")))
+(defun org-make-toc--link-entry-github (pos)
+  "Return text for entry at POS converted to GitHub style link."
+  (-when-let* ((title (org-link-display-format (org-entry-get pos "ITEM")))
                (target (--> title
                             org-link-display-format
                             (downcase it)
@@ -428,10 +428,10 @@ Uses hash table `org-make-toc-disambiguations'."
     (org-make-link-string (concat filename "#" target)
                           (org-make-toc--visible-text title))))
 
-(defun org-make-toc--link-entry-org ()
-  "Return text for ENTRY converted to regular Org link."
+(defun org-make-toc--link-entry-org (pos)
+  "Return text for entry at POS converted to regular Org link."
   ;; FIXME: There must be a built-in function to do this, although it might be in `org-export'.
-  (-when-let* ((title (org-link-display-format (org-entry-get nil "ITEM")))
+  (-when-let* ((title (org-link-display-format (org-entry-get pos "ITEM")))
                (filename (if org-make-toc-filename-prefix
                              (concat "file:" (file-name-nondirectory (buffer-file-name)) "::")
                            "")))

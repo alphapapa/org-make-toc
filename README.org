@@ -126,6 +126,7 @@ Because of the way GitHub renders Org documents and links, it's not possible to 
 *Fixes*
 
 + Tolerate whitespace before drawer opening/closing lines.  ([[https://github.com/alphapapa/org-make-toc/pull/15][#15]], [[https://github.com/alphapapa/org-make-toc/issues/17][#17]].  Thanks to [[https://github.com/progfolio][Nicholas Vollmer]].)
++ Link-type function called with position as argument.  (Fixes occasional bugs with heading IDs.)
 
 ** 0.5
 
