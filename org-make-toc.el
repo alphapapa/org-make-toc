@@ -5,7 +5,7 @@
 ;; Author: Adam Porter <adam@alphapapa.net>
 ;; URL: http://github.com/alphapapa/org-make-toc
 ;; Version: 0.6-pre
-;; Package-Requires: ((emacs "26.1") (dash "2.12") (s "1.10.0") (org "9.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.12") (s "1.10.0") (org "9.3") (compat "29.1"))
 ;; Keywords: Org, convenience
 
 ;;; Commentary:
@@ -425,7 +425,7 @@ Uses hash table `org-make-toc-disambiguations'."
                        (setf (gethash pos org-make-toc-ids)
                              (org-make-toc--disambiguate target))))
       (org-set-property "CUSTOM_ID" target))
-    (org-make-link-string (concat filename "#" target)
+    (org-link-make-string (concat filename "#" target)
                           (org-make-toc--visible-text title))))
 
 (defun org-make-toc--link-entry-org (pos)
@@ -435,7 +435,7 @@ Uses hash table `org-make-toc-disambiguations'."
                (filename (if org-make-toc-filename-prefix
                              (concat "file:" (file-name-nondirectory (buffer-file-name)) "::")
                            "")))
-    (org-make-link-string (concat filename title)
+    (org-link-make-string (concat filename title)
                           (org-make-toc--visible-text title))))
 
 (defun org-make-toc--replace-entry-contents (contents)
