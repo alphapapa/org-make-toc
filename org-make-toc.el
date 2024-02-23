@@ -458,7 +458,7 @@ Replaces contents of :CONTENTS: drawer."
                                      (forward-line 1)
                                      (looking-at-p (rx bol ":TOC:" (0+ blank) (group (1+ nonl)))))
                                (forward-line 1))
-                             (pos-eol))
+                             (if (symbol-function 'pos-eol) (pos-eol) (line-end-position)))
               contents (concat "\n" (string-trim contents) "\n")
               (buffer-substring contents-beg contents-end) contents)))))
 
