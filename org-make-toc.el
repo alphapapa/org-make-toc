@@ -131,6 +131,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'compat)
 (require 'org)
 (require 'rx)
 (require 'seq)
