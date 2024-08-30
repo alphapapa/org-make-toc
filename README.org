@@ -117,7 +117,7 @@ Because of the way GitHub renders Org documents and links, it's not possible to 
 :TOC:      :depth 0
 :END:
 
-** 0.6-pre
+** 0.6
 
 *Compatibility*
 + Org 9.3 or later is now required.
